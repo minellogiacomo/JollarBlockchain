@@ -1,3 +1,5 @@
+
+//define subtype cardinality
 type blockchain: void {
   .block*: Block
 }
@@ -48,15 +50,15 @@ interface DemoTxInterface {
 }
 
 interface BlockchainSyncInterface {
-  RequestResponse: BlockchainSync(blockchain)(bool)
+  RequestResponse: BlockchainSync(blockchain)(bool)//bool or block n. & location?
 }
 
 interface BlockBroadcastInterface {
-  RequestResponse: BlockBroadcast(block)(bool)
+  RequestResponse: BlockBroadcast(block)(bool)//bool or location to send?
 }
 
 interface TransactionBroadcastInterface {
-  RequestResponse: TxBroadcast(transaction)(bool)
+  RequestResponse: TxBroadcast(transaction)(bool)//change to transaction queque
 }
 
 interface TimeBroadcastInterface { //fuck server timestamp
@@ -64,9 +66,9 @@ interface TimeBroadcastInterface { //fuck server timestamp
 }
 
 interface NetworkVisualizerInterface {
-  RequestResponse: NetworkVisualizer(void)(undefined)
+  RequestResponse: NetworkVisualizer(void)(undefined)//in the end define response
 }
 
-interface PeerDiscoveryInterface {
+interface PeerDiscoveryInterface {//change to peertable
   RequestResponse: PeerDiscovery(Node)(Node)
 }

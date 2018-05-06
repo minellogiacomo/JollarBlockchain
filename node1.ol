@@ -21,7 +21,7 @@ inputPort NetworkPort {
 inputPort InPort {
   Location: "socket://localhost:9001"
  	Protocol: http
-  Interfaces: DemoTxInterface
+  Interfaces: DemoTxInterface //more to come
 }
 
 outputPort OutputBroadcastPort {
@@ -33,36 +33,39 @@ Interfaces: PeerDiscoveryInterface, BlockBroadcastInterface,
 
 execution {concurrent}
 
-constants {
+constants {}
 
-}
+define findpeer {
+  PeerDiscovery@NetworkPort(me)(response) //to change: send peertable, recive peertable
+  {global.peertable.(response.publicKey).location=response.location; //to test, very stange}
+  }
 
-define nomeProcedura {
 
-}
+    define creategenesisblock {}
+    define blockchainsync{}
+    define tansactionbroadcast{}
+    define verification{}
 
-/*
-generate key pair
-Node1: genesis block
-Peer Discovery |
-blockchain sync;
-transaction broadcast (event triggered)| verification (transaction, pow, send)
-*/
 
 init {
  install(TypeMismatch =>println@Console( "TypeMismatch: " + main.TypeMismatch )())|
  global.status.myID = 1 |
- global.status.myLocation= "socket://localhost:9001" | // or InPort.location
- global.status.phase=0 | //0=create Genesis Block??
- { //add error handling
-   getCurrentTimeMillis@Time()(millis); global.status.startUpTime=millis} |
-
+ global.status.myLocation= InPort.location
+ global.status.phase=0 ; //0=create Genesis Block??
  //+generate key pair
-
+ global.peertable.("dummy public key").location=global.status.myLocation| //use #array?
+ //add error handling
+ {getCurrentTimeMillis@Time()(millis); global.status.startUpTime=millis};
+ if (global.status.phase==0){creategenesisblock}
+ new_queue@queque_utils("transactionqueque"+global.status.myID)(response) //response=bool
 
 }
 
-main{
+main{//all parallel?
+findpeer|
+blockchainsync|
+tansactionbroadcast|
+verification
 //  nodeLocation = "socket://localhost:800" + (5+i);
 //  			OutputPort.location = nodeLocation;
 //NetworkVisualizer()(response){send data}
