@@ -42,9 +42,15 @@ define findpeer {
 
 
     define creategenesisblock {}
+    define createblock {}
     define blockchainsync{}
     define tansactionbroadcast{}
     define verification{}
+    define blockverification{}
+    define transactionverification{}
+    define signatureverification{}
+    define applysignature{}
+    
 
 
 init {
@@ -69,5 +75,4 @@ verification
 //  nodeLocation = "socket://localhost:800" + (5+i);
 //  			OutputPort.location = nodeLocation;
 //NetworkVisualizer()(response){send data}
-
 }

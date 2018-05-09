@@ -21,7 +21,7 @@ public class GenSig extends JavaService {
          }
 
          Value v = vVector.get( 0 );
-         v.setValue(priv);
+         v.setValue(priv); //maybe an error
          v = vVector.get( 1 );
          v.setValue(pub);
          return v;

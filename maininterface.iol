@@ -16,6 +16,7 @@ type block: void {
 .difficulty: double
 .transaction: transaction
 .mediantime:long
+.coinbase: transaction
 }
 
 type transaction: void {
@@ -45,6 +46,10 @@ type Node: void {
   .location?: string
 }
 
+type peertable: void {
+  .Node: string
+}
+
 interface DemoTxInterface {
   RequestResponse: DemoTx(Transaction)(bool)
 }
@@ -70,5 +75,5 @@ interface NetworkVisualizerInterface {
 }
 
 interface PeerDiscoveryInterface {//change to peertable
-  RequestResponse: PeerDiscovery(Node)(Node)
+  RequestResponse: PeerDiscovery(peertable)(peertable)
 }
