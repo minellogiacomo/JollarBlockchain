@@ -10,5 +10,4 @@ public class SHA3 extends JavaService {
       String encoded = Base64.getEncoder().encodeToString(hash);
       return encoded;
     }
-
 }
