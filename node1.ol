@@ -47,18 +47,24 @@ define findpeer {
     define tansactionbroadcast{}
     define verification{}
     define blockverification{}
+    define powverification{}
     define transactionverification{}
     define signatureverification{}
     define applysignature{}
-    
+    define generatekeypair{}
 
+    define networkvisualizerresponse{ // i'm a bit confused
+      NetworkVisualizer@NetworkPort()(response);
+      { response=global.status.myID
+      }
+    }
 
 init {
  install(TypeMismatch =>println@Console( "TypeMismatch: " + main.TypeMismatch )())|
  global.status.myID = 1 |
  global.status.myLocation= InPort.location
  global.status.phase=0 ; //0=create Genesis Block??
- //+generate key pair
+ generatekeypair;
  global.peertable.("dummy public key").location=global.status.myLocation| //use #array?
  //add error handling
  {getCurrentTimeMillis@Time()(millis); global.status.startUpTime=millis};
