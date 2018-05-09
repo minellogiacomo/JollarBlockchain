@@ -10,6 +10,8 @@ include "string_utils.iol" //string operations (id, hash)
 include "time.iol" //getCurrentTimeMillis
 include "maininterface.iol"
 
+//add input handler
+
 inputPort NetworkPort {
   Location: "socket://localhost:9000"
 	Protocol: http
@@ -35,11 +37,36 @@ execution {concurrent}
 
 constants {}
 
-define findpeer {
+define PeerDiscoveryResponse {
   PeerDiscovery@NetworkPort(me)(response) //to change: send peertable, recive peertable
-  {global.peertable.(response.publicKey).location=response.location; //to test, very stange}
+  {global.peertable.(response.publicKey).location=response.location //to test, very stange}
   }
 
+  define DemoTxresponse {
+    DemoTx@InPort(Transaction)(response) //to change: send peertable, recive peertable
+    { }
+  }
+
+  define BlockBroadcastResponse {
+    BlockBroadcastResponse@NetworkPort(block)(response) //to change: send peertable, recive peertable
+    { }
+  }
+
+  define TransactionBroadcastResponse {
+    TransactionBroadcasttResponse@NetworkPort(transaction)(response) //to change: send peertable, recive peertable
+    { }
+  }
+
+  define TimeBroadcastResponse {
+    TimeBroadcastResponse@NetworkPort()(response) //to change: send peertable, recive peertable
+    { }
+  }
+
+  define NetworkVisualizerResponse{ // i'm a bit confused
+    NetworkVisualizer@NetworkPort()(response)
+    { response=global.status.myID
+    }
+  }
 
     define creategenesisblock {}
     define createblock {}
@@ -54,12 +81,6 @@ define findpeer {
     define generatekeypair{}
     define getnetworkaveragetime{}
 
-
-    define networkvisualizerresponse{ // i'm a bit confused
-      NetworkVisualizer@NetworkPort()(response)
-      { response=global.status.myID
-      }
-    }
 
 init {
  install(TypeMismatch =>println@Console( "TypeMismatch: " + main.TypeMismatch )())|
@@ -82,5 +103,4 @@ tansactionbroadcast|
 verification
 //  nodeLocation = "socket://localhost:800" + (5+i);
 //  			OutputPort.location = nodeLocation;
-//NetworkVisualizer()(response){send data}
 }

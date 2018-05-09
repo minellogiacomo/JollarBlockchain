@@ -7,7 +7,7 @@ import java.security.*;
 
 public class GenSig extends JavaService {
 
-    public static KeyGenerator( Integer request ){
+    public static Value KeyGenerator( Integer request ){
       try {
           SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
           KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
@@ -20,6 +20,7 @@ public class GenSig extends JavaService {
              System.err.println("Caught exception " + e.toString());
          }
 
+         
          Value v = vVector.get( 0 );
          v.setValue(priv); //maybe an error
          v = vVector.get( 1 );
