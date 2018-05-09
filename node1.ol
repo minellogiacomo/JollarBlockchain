@@ -52,9 +52,11 @@ define findpeer {
     define signatureverification{}
     define applysignature{}
     define generatekeypair{}
+    define getnetworkaveragetime{}
+
 
     define networkvisualizerresponse{ // i'm a bit confused
-      NetworkVisualizer@NetworkPort()(response);
+      NetworkVisualizer@NetworkPort()(response)
       { response=global.status.myID
       }
     }
