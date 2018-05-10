@@ -81,7 +81,6 @@ define PeerDiscoveryResponse {
     define generatekeypair{}
     define getnetworkaveragetime{}
 
-
 init {
  install(TypeMismatch =>println@Console( "TypeMismatch: " + main.TypeMismatch )())|
  global.status.myID = 1 |
@@ -93,7 +92,6 @@ init {
  {getCurrentTimeMillis@Time()(millis); global.status.startUpTime=millis};
  if (global.status.phase==0){creategenesisblock}
  new_queue@queque_utils("transactionqueque"+global.status.myID)(response) //response=bool
-
 }
 
 main{//all parallel?

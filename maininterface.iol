@@ -24,8 +24,8 @@ type transaction: void {
   .size: int
   .vin : TxIn
   .vout: TxOut
-  .nodeSeller: Node
-  .nodeBuyer: Node
+  .nodeSeller: Node //redundant with txin?
+  .nodeBuyer: Node //redundant with txout?
   .jollar: int
   //add sign
 }
