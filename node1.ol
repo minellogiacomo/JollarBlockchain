@@ -43,29 +43,28 @@ define PeerDiscoveryResponse {
   }
 
   define DemoTxresponse {
-    DemoTx@InPort(Transaction)(response) //to change: send peertable, recive peertable
+    DemoTx@InPort(Transaction)(response)
     { }
   }
 
   define BlockBroadcastResponse {
-    BlockBroadcastResponse@NetworkPort(block)(response) //to change: send peertable, recive peertable
+    BlockBroadcastResponse@NetworkPort(block)(response)
     { }
   }
 
   define TransactionBroadcastResponse {
-    TransactionBroadcasttResponse@NetworkPort(transaction)(response) //to change: send peertable, recive peertable
+    TransactionBroadcasttResponse@NetworkPort(transaction)(response)
     { }
   }
 
   define TimeBroadcastResponse {
-    TimeBroadcastResponse@NetworkPort()(response) //to change: send peertable, recive peertable
-    { }
+    TimeBroadcastResponse@NetworkPort()(response)
+    {response=getCurrentTimeMillis@Time()( millis )}
   }
 
-  define NetworkVisualizerResponse{ // i'm a bit confused
+  define NetworkVisualizerResponse{
     NetworkVisualizer@NetworkPort()(response)
-    { response=global.status.myID
-    }
+    { response=global.status.myID }
   }
 
     define creategenesisblock {}
