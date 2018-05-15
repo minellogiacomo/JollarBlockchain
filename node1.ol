@@ -38,8 +38,8 @@ execution {concurrent}
 constants {}
 
 define PeerDiscoveryResponse {
-  PeerDiscovery@NetworkPort(me)(response) //to change: send peertable, recive peertable
-  {global.peertable.(response.publicKey).location=response.location //to test, very stange}
+  PeerDiscovery@NetworkPort(peertable)(response)
+  {global.peertable=response} //to test
   }
 
   define DemoTxresponse {
@@ -53,13 +53,14 @@ define PeerDiscoveryResponse {
   }
 
   define TransactionBroadcastResponse {
-    TransactionBroadcasttResponse@NetworkPort(transaction)(response)
+    TransactionBroadcastResponse@NetworkPort(transaction)(response)
     { }
   }
 
   define TimeBroadcastResponse {
     TimeBroadcastResponse@NetworkPort()(response)
-    {response=getCurrentTimeMillis@Time()( millis )}
+    {response=getCurrentTimeMillis@Time()( millis )
+    }
   }
 
   define NetworkVisualizerResponse{
@@ -67,29 +68,57 @@ define PeerDiscoveryResponse {
     { response=global.status.myID }
   }
 
-    define creategenesisblock {}
-    define createblock {}
-    define blockchainsync{}
-    define tansactionbroadcast{}
-    define verification{}
+    define creategenesisblock {
+      with( global.blockchain.block[0] ){
+        .previousBlockHash="0"|
+        .size=1 |
+        .n=0 |
+        .time=getCurrentTimeMillis@Time()( millis ); //leave semicolon, need hash
+        .merkleroot="0" //define better
+      //  .hash=
+      //  .difficulty=
+      //  .coinbase
+      }
+    }
+
+    define createblock {
+
+    }
+    define blockchainsync{
+
+    }
+    define tansactionbroadcast{
+
+    }
+    define verification{
+
+    }
     define blockverification{}
     define powverification{}
     define transactionverification{}
     define signatureverification{}
     define applysignature{}
     define generatekeypair{}
-    define getnetworkaveragetime{}
+
+    define getnetworkaveragetime{
+      TimeBroadcast@NetworkPort()(response) //undef global.avgtime after use
+      if ( is_defined( global.avgtime ) ) {
+         global.avgtime=(global.avgtime+response)/2
+         } else {
+       global.avgtime=response
+         }
+    }
 
 init {
  install(TypeMismatch =>println@Console( "TypeMismatch: " + main.TypeMismatch )())|
  global.status.myID = 1 |
- global.status.myLocation= InPort.location
- global.status.phase=0 ; //0=create Genesis Block??
- generatekeypair;
- global.peertable.("dummy public key").location=global.status.myLocation| //use #array?
- //add error handling
- {getCurrentTimeMillis@Time()(millis); global.status.startUpTime=millis};
- if (global.status.phase==0){creategenesisblock}
+ global.status.myLocation= InPort.location |
+ global.status.phase=0 ; //0=create Genesis Block
+ {getCurrentTimeMillis@Time()(millis);
+  global.status.startUpTime=millis }|
+ {generatekeypair;
+ global.peertable.("dummy public key").location=global.status.myLocation}| //use #array?
+ if (global.status.phase==0){creategenesisblock}|
  new_queue@queque_utils("transactionqueque"+global.status.myID)(response) //response=bool
 }
 

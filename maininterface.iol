@@ -6,10 +6,10 @@ type blockchain: void {
 
 type block: void {
 .previousBlockHash: string
-.size : int
+.size: int
 .n:long
-.merkleroot:string
-.txid:string
+.merkleroot?:string
+.txid*:string
 .time: long //avoid year2038 problem
 .avgtime: long
 .hash:string
@@ -66,7 +66,7 @@ interface TransactionBroadcastInterface {
   RequestResponse: TxBroadcast(transaction)(bool)//change to transaction queque
 }
 
-interface TimeBroadcastInterface { //fuck server timestamp
+interface TimeBroadcastInterface {
   RequestResponse: TimeBroadcast()(long)
 }
 
@@ -74,6 +74,6 @@ interface NetworkVisualizerInterface {
   RequestResponse: NetworkVisualizer(void)(undefined)//in the end define response
 }
 
-interface PeerDiscoveryInterface {//change to peertable
+interface PeerDiscoveryInterface {
   RequestResponse: PeerDiscovery(peertable)(peertable)
 }
