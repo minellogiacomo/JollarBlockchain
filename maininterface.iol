@@ -1,22 +1,29 @@
 
 //define subtype cardinality
-type blockchain: void {
-  .block*: Block
+
+
+type TxOut: void {
+  .n: int
+  .value: long //in Jollaroshi 1J=100,000,000 Jollaroshi
+  .pk: string
+  .coinbase:string
+  .signature: string
 }
 
-type block: void {
-.previousBlockHash: string
-.size: int
-.n:long
-.merkleroot?:string
-.txid*:string
-.time: long //avoid year2038 problem
-.avgtime: long
-.hash:string
-.difficulty: double
-.transaction: transaction
-.mediantime:long
-.coinbase: transaction
+type TxValue: void {
+  .value: long //in Jollaroshi 1J=100,000,000 Jollaroshi
+  .pk: string
+}
+
+//UXTO n=numero di input (unspent transaction)
+type TxIn: void {
+  .n: int
+  .txid: string
+  .vout: TxOut
+  .pk:string
+  .signature: string
+  //.coinbase:string
+  .value:int
 }
 
 type transaction: void {
@@ -24,21 +31,27 @@ type transaction: void {
   .size: int
   .vin : TxIn
   .vout: TxOut
-  .nodeSeller: Node //redundant with txin?
-  .nodeBuyer: Node //redundant with txout?
-  .jollar: int
-  //add sign
 }
 
-type TxIn: void {
-  .txid: string
+type block: void {
+.previousBlockHash: string
+.size: int
+.n:long
+.merkleroot?:string
+.time: long //avoid year2038 problem
+.avgtime: long
+.hash:string
+.difficulty: double
+.transactionnumber: int
+.transaction: transaction
+.Pow[0,*]:long
 }
 
-type TxOut: void {
-  .value: int //long? double?
-  .n: int
-  .scriptPubKey: string
+type blockchain: void {
+  .block*: block
 }
+
+
 
 type Node: void {
   .publicKey: string
@@ -51,7 +64,7 @@ type peertable: void {
 }
 
 interface DemoTxInterface {
-  RequestResponse: DemoTx(Transaction)(bool)
+  RequestResponse: DemoTx(TxValue)(bool)
 }
 
 interface BlockchainSyncInterface {
@@ -67,7 +80,7 @@ interface TransactionBroadcastInterface {
 }
 
 interface TimeBroadcastInterface {
-  RequestResponse: TimeBroadcast()(long)
+  RequestResponse: TimeBroadcast(void)(long)
 }
 
 interface NetworkVisualizerInterface {
