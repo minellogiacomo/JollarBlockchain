@@ -136,6 +136,7 @@ init {
 }
 
 main { //all parallel?
+  
  PeerDiscovery(peertableother)(response) {
  response=global.peertable;
  global.peertable << peertableother
@@ -159,13 +160,12 @@ main { //all parallel?
  TimeBroadcast()(response) {
   getCurrentTimeMillis @Time()(millis);
   response = millis
-};
-
+}
 /*
  findpeer;
  blockchainsync |
  tansactionbroadcast |
  nodeLocation = "socket://localhost:800" + (5+i);
  OutputPort.location = nodeLocation;*/
- println@Console("Guess who compile madafakka!")()
+
 }

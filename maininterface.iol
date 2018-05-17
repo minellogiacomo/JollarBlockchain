@@ -22,7 +22,6 @@ type TxIn: void {
   .vout: TxOut
   .pk:string
   .signature: string
-  //.coinbase:string
   .value:int
 }
 

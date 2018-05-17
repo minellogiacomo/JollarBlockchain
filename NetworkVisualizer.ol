@@ -9,7 +9,7 @@ outputPort NetworkPort { //broadcast
   Interfaces: NetworkVisualizerInterface
 }
 
-execution {concurrent}
+//execution {concurrent}
 
 main{
 NetworkVisualizer@NetworkPort()(response);
