@@ -46,6 +46,7 @@ constants {}
 
 define creategenesisblock {
  global.blockchain.block[0].previousBlockHash = "0" ;
+ global.blockchain.block[0].version="1"
   global.blockchain.block[0].size = 1 ;
   global.blockchain.block[0].n = 0 ;
   //global.blockchain.block[0].avgtime=
@@ -91,6 +92,11 @@ define creategenesisblock {
 
  define generatekeypair{}
   */
+
+define powverification{
+
+}
+
 define findpeer {
  tavola << global.peertable;
  undef(tavola.node[0].privateKey);
@@ -158,21 +164,33 @@ main { //all parallel?
   TransactionBroadcast@OutputBroadcastPort(transaction)(response);
   //create block
   with (block){
-    .previousBlockHash=
-    .seze=1 |
+     md5@MessageDigest(#global.blockchain.block-1)(response);
+    .previousBlockHash=response|
+    .version="1" |
+    .size=1 |
     .n=#global.blockchain.block |
+    .difficulty=2; //costante per operations
     getCurrentTimeMillis @Time()(millis);
-    .time=millis;
+    .time=millis|
     getnetworkaveragetime;
     .avgtime=global.avgtime;
-    undef(avgtime);
-    //.hash=md5@
-    .difficulty=2; //costante per operations
-    .transactionnumber=1; //per ora = a 1
-    .tansaction=transaction;
+    undef(avgtime)|
+    md5@MessageDigest(block.previousBlockHash+ //better define order and what to hash
+                      block.size+
+                      block.version+
+                      block.n+
+                      block.time+
+                      block.avgtime
+                      block.difficulty)(response)
+    .hash=response;
+    .transactionnumber=2; //per ora = a 1
+    .transaction[0]=transaction;
+    //coinbase
+    .transaction[1]=
   }
-  BlockBroadcast@OutputBroadcastPort(block)(response);
-  
+  global.blockchain.block[#global.blockchain.block]=block
+  //BlockBroadcast@OutputBroadcastPort(block)(response);
+
  }
 
  PeerDiscovery(peertableother)(response) {

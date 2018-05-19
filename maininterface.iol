@@ -32,6 +32,7 @@ type transaction: void {
 }
 
 type block: void {
+.version: string //future proof
 .previousBlockHash: string
 .size: int
 .n:long
@@ -48,8 +49,6 @@ type block: void {
 type blockchain: void {
   .block*: block
 }
-
-
 
 type Node: void {
   .publicKey: string
