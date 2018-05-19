@@ -42,7 +42,7 @@ execution {
  concurrent
 }
 
-//constants {}
+constants {}
 
 define creategenesisblock {
  global.blockchain.block[0].previousBlockHash = "0" ;
@@ -62,7 +62,7 @@ define creategenesisblock {
   //global.blockchain.block[0].transaction.vout.signature=applySignature@embedd()()
   //add pow
   getCurrentTimeMillis @Time()(global.blockchain.block[0].time);
- md5 @MessageDigest("Insert Header")(global.blockchain.block[0].hash)
+  md5 @MessageDigest("Insert Header")(global.blockchain.block[0].hash)
 }
 /*
  define createblock {
@@ -96,14 +96,6 @@ define findpeer {
  undef(tavola.node[0].privateKey);
 PeerDiscovery@OutputBroadcastPort(tavola)(response);
  global.peertable << response //to do: remove duplicates
-
- /*
- for ( i = 0, i < #global.peertable.node, i++  ) {
-
-   if (global.peertable.node[i].publicKey!=response.node[i].publicKey
-     & global.peertable.node[i].location!=response.node[i].publicKey)
-  global.peertable.(response.)
-    }*/
 }
 
 define getnetworkaveragetime {
@@ -136,17 +128,62 @@ init {
 }
 
 main { //all parallel?
+  DemoTx(TxValue)(response) {
+   //compose tx, broadcast tx
+   onetime=false;
+   for ( i = 0, i < #global.peertable.node, i++  ){
+     if (global.peertable.node[i].location==TxValue.location){
+       TxValue.publicKey=global.peertable.node[i].publicKey
+     } else{
+      if (onetime=false){
+      findpeer;
+      onetime=true|
+      i=0
+      } else {
+        response=false
+      }
+     }
+   }
+  with ( transaction ){
+      .txid=
+      .size=
+      .vin
+
+      .vout[0].n=
+      .vout[0].value=
+      .vout[0].pk=
+      .vout[0].signature=
+
+  }
+  TransactionBroadcast@OutputBroadcastPort(transaction)(response);
+  //create block
+  with (block){
+    .previousBlockHash=
+    .seze=1 |
+    .n=#global.blockchain.block |
+    getCurrentTimeMillis @Time()(millis);
+    .time=millis;
+    getnetworkaveragetime;
+    .avgtime=global.avgtime;
+    undef(avgtime);
+    //.hash=md5@
+    .difficulty=2; //costante per operations
+    .transactionnumber=1; //per ora = a 1
+    .tansaction=transaction;
+  }
+  BlockBroadcast@OutputBroadcastPort(block)(response);
   
+ }
+
  PeerDiscovery(peertableother)(response) {
  response=global.peertable;
  global.peertable << peertableother
-};
- DemoTx(TxValue)(response) {
-  stringa = ""
+ response=true
 };
  BlockBroadcast(block)(response) {
   if (true) // blockverification
-   global.blockchain.block[block.n] = block
+   global.blockchain.block[block.n] = block|
+   response=true
  };
  TxBroadcast(transaction)(response) {
   if (true) //transaction is valid
@@ -161,11 +198,5 @@ main { //all parallel?
   getCurrentTimeMillis @Time()(millis);
   response = millis
 }
-/*
- findpeer;
- blockchainsync |
- tansactionbroadcast |
- nodeLocation = "socket://localhost:800" + (5+i);
- OutputPort.location = nodeLocation;*/
 
 }

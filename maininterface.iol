@@ -1,7 +1,6 @@
 
 //define subtype cardinality
 
-
 type TxOut: void {
   .n: int
   .value: long //in Jollaroshi 1J=100,000,000 Jollaroshi
@@ -43,7 +42,7 @@ type block: void {
 .difficulty: double
 .transactionnumber: int
 .transaction: transaction
-.Pow[0,*]:long
+.Pow:long //TO DO: at least and at most 1
 }
 
 type blockchain: void {
@@ -71,11 +70,11 @@ interface BlockchainSyncInterface {
 }
 
 interface BlockBroadcastInterface {
-  RequestResponse: BlockBroadcast(block)(bool)//bool or location to send?
+  RequestResponse: BlockBroadcast(block)(bool)
 }
 
 interface TransactionBroadcastInterface {
-  RequestResponse: TxBroadcast(transaction)(bool)//change to transaction queque
+  RequestResponse: TxBroadcast(transaction)(bool)
 }
 
 interface TimeBroadcastInterface {
