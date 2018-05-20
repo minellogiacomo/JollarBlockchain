@@ -45,6 +45,7 @@ execution {
 constants {}
 
 define creategenesisblock {
+  //use with
  global.blockchain.block[0].previousBlockHash = "0" ;
  global.blockchain.block[0].version="1"
   global.blockchain.block[0].size = 1 ;
@@ -134,7 +135,7 @@ init {
 }
 
 main { //all parallel?
-  DemoTx(TxValue)(response) {
+  [DemoTx(TxValue)(response) {
    //compose tx, broadcast tx
    onetime=false;
    for ( i = 0, i < #global.peertable.node, i++  ){
@@ -151,16 +152,28 @@ main { //all parallel?
      }
    }
   with ( transaction ){
-      .txid=
-      .size=
-      .vin
+      md5@MessageDigest("Secure random intance")(response);
+      .txid=response|
+      //.size=
+      //add procedure to find transaction input
+      // the idea is: find the most recent unspent tx where the total amount add at least to the output
+      //So:  check if spent, check if value summs up
+      for( i = #global.block.block-1, i=0, i-- ) {
+        for( j = #global.block.block[i].transaction.vout-1, i=0, i-- ) {
 
-      .vout[0].n=
-      .vout[0].value=
-      .vout[0].pk=
-      .vout[0].signature=
+        blockchain.block[i].transaction.vout[j].value
+        }
+       };
 
-  }
+
+      .vin[].txid=
+      .vin[].index=
+      //.vout[0].n= deprecated use # instead
+      .vout[0].value=TxValue.value|
+      .vout[0].pk=TxValue.publicKey
+      //.vout[0].signature=
+
+  };
   TransactionBroadcast@OutputBroadcastPort(transaction)(response);
   //create block
   with (block){
@@ -174,7 +187,7 @@ main { //all parallel?
     .time=millis|
     getnetworkaveragetime;
     .avgtime=global.avgtime;
-    undef(avgtime)|
+    undef(global.avgtime)|
     md5@MessageDigest(block.previousBlockHash+ //better define order and what to hash
                       block.size+
                       block.version+
@@ -189,32 +202,33 @@ main { //all parallel?
     .transaction[1]=
   }
   global.blockchain.block[#global.blockchain.block]=block
+  //BlockchainSync@OutputBroadcastPort(block)(response);
   //BlockBroadcast@OutputBroadcastPort(block)(response);
 
- }
+ }]
 
- PeerDiscovery(peertableother)(response) {
+ [PeerDiscovery(peertableother)(response) {
  response=global.peertable;
  global.peertable << peertableother
  response=true
-};
- BlockBroadcast(block)(response) {
+}]
+ [BlockBroadcast(block)(response) {
   if (true) // blockverification
    global.blockchain.block[block.n] = block|
    response=true
- };
- TxBroadcast(transaction)(response) {
+ }]
+ [TxBroadcast(transaction)(response) {
   if (true) //transaction is valid
    QueueReq.queue_name = "transactionqueque" + global.status.myID |
    QueueReq.element = transaction;
   push @QueueUtils(QueueReq)(response)
-};
- NetworkVisualizer()(response) {
+}]
+ [NetworkVisualizer()(response) {
   response = global.status.myID
-};
- TimeBroadcast()(response) {
+}]
+ [TimeBroadcast()(response) {
   getCurrentTimeMillis @Time()(millis);
   response = millis
-}
+}]
 
 }

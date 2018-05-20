@@ -2,11 +2,10 @@
 //define subtype cardinality
 
 type TxOut: void {
-  .n: int
   .value: long //in Jollaroshi 1J=100,000,000 Jollaroshi
   .pk: string
   .coinbase:string
-  .signature: string
+  .signature: string //TO DO: add (this is second half)
 }
 
 type TxValue: void {
@@ -14,14 +13,11 @@ type TxValue: void {
   .pk: string
 }
 
-//UXTO n=numero di input (unspent transaction)
+//UXTO (unspent transaction)
 type TxIn: void {
-  .n: int
   .txid: string
-  .vout: TxOut
-  .pk:string
-  .signature: string
-  .value:int
+  .index: int
+  .signature:string //TO DO: add (this is first half)
 }
 
 type transaction: void {
@@ -36,7 +32,8 @@ type block: void {
 .previousBlockHash: string
 .size: int
 .n:long
-.merkleroot?:string
+.type=string //type of pow chain
+.merkleroot?:string //multiple tx?
 .time: long //avoid year2038 problem
 .avgtime: long
 .hash:string
@@ -85,5 +82,5 @@ interface NetworkVisualizerInterface {
 }
 
 interface PeerDiscoveryInterface {
-  RequestResponse: PeerDiscovery(peertable)(peertable)
+  RequestResponse: PeerDiscovery(peertable)(peertable) //or use an array of nodes?
 }

@@ -11,7 +11,6 @@ include "time.iol" //getCurrentTimeMillis
 include "maininterface.iol"
 
 outputPort OutPort {
- //Location: "socket://localhost:900i"
  Protocol: http
  Interfaces: DemoTxInterface
 }
