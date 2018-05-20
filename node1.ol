@@ -37,15 +37,12 @@ inputPort InPort {
  Interfaces: DemoTxInterface //more to come
 }
 
-
-execution {
- concurrent
-}
+execution {concurrent}
 
 constants {}
 
 define creategenesisblock {
-  //use with
+  //use with?
  global.blockchain.block[0].previousBlockHash = "0" ;
  global.blockchain.block[0].version="1"
   global.blockchain.block[0].size = 1 ;
@@ -53,7 +50,6 @@ define creategenesisblock {
   //global.blockchain.block[0].avgtime=
   global.blockchain.block[0].difficulty = 1 ;
   global.blockchain.block[0].transactionnumber = 1 ;
-
   global.blockchain.block[0].transaction.txid = "random string?" ;
   global.blockchain.block[0].transaction.size = 1 ;
   global.blockchain.block[0].transaction.vin.n = 0 ;
@@ -67,36 +63,16 @@ define creategenesisblock {
   md5 @MessageDigest("Insert Header")(global.blockchain.block[0].hash)
 }
 /*
- define createblock {
-  //define internal service
- }
- define blockchainsync{
-
- }
-
- define tansactionbroadcast{
-  TxBroadcast@NetworkPort(transaction)(response)
- }
-
- define verification{
-
- }
+ define verification{}
  define blockverification{}
-
  define powverification{}
-
  define transactionverification{}
-
  define signatureverification{}
-
  define applysignature{}
-
  define generatekeypair{}
   */
 
-define powverification{
-
-}
+define powverification{}
 
 define findpeer {
  tavola << global.peertable;
@@ -137,7 +113,6 @@ init {
 
 main { //all parallel?
   [DemoTx(TxValue)(response) {
-   //compose tx, broadcast tx
    onetime=false;
    for ( i = 0, i < #global.peertable.node, i++  ){ //for element in global.peertable.node?
      if (global.peertable.node[i].location==TxValue.location){
@@ -161,7 +136,7 @@ main { //all parallel?
       sum=0;
       for( i = #global.block.block-1, i=0, i-- ) {
         for( j = #global.block.block[i].transaction.vout-1, i=0, i-- ) {
-        if(TxValue.value-sum>0) {
+        if(TxValue.value-sum>0) { //TO DO: CHECK IF UNSPENT
           //blockchain.block[i].transaction.vout[j].value
           sum=sum+blockchain.block[i].transaction.vout[j].value;
           transaction.vin[#transaction.vin].txid=blockchain.block[i].transaction.txid;
@@ -177,14 +152,14 @@ main { //all parallel?
       };
       //.vout[0].signature=
 
-  TransactionBroadcast@OutputBroadcastPort(transaction)(response);
-  //create block
+    TransactionBroadcast@OutputBroadcastPort(transaction)(response);
+    //create block
     md5@MessageDigest(#global.blockchain.block-1)(response);
     block.previousBlockHash=response|
     block.version="1" |
     block.size=1 |
     block.n=#global.blockchain.block |
-    block.difficulty=2; //costante per operations
+    block.difficulty=2; //costante per ora
     getCurrentTimeMillis @Time()(millis);
     block.time=millis|
     getnetworkaveragetime;
