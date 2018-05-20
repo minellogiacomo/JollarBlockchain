@@ -161,7 +161,7 @@ main { //all parallel?
       sum=0;
       for( i = #global.block.block-1, i=0, i-- ) {
         for( j = #global.block.block[i].transaction.vout-1, i=0, i-- ) {
-        if((TxValue.value-sum>0) and (/*non spesa*/)) {
+        if(TxValue.value-sum>0) {
           //blockchain.block[i].transaction.vout[j].value
           sum=sum+blockchain.block[i].transaction.vout[j].value;
           transaction.vin[#transaction.vin].txid=blockchain.block[i].transaction.txid;
@@ -169,8 +169,12 @@ main { //all parallel?
         }
         }
        };
-      transaction.vout[0].value=TxValue.value|
-      transaction.vout[0].pk=TxValue.publicKey
+      transaction.vout[#transaction.vout].value=TxValue.value|
+      transaction.vout[#transaction.vout].pk=TxValue.publicKey;
+      if (sum>Tx.Value){
+        transaction.vout[#transaction.vout].value=TxValue.value-sum| //why? to better support multiple outputs
+        transaction.vout[#transaction.vout].pk=global.peertable.node[0].publicKey;
+      };
       //.vout[0].signature=
 
   TransactionBroadcast@OutputBroadcastPort(transaction)(response);
@@ -194,11 +198,15 @@ main { //all parallel?
                       block.avgtime
                       block.difficulty)(response)
     block.hash=response;
-    block.transactionnumber=2; //per ora = a 1
     block.transaction[0]=transaction;
     //coinbase
     //define coinbase as a global var (type transaction)?
-    block.transaction[1]=
+    md5@MessageDigest("Secure random intance1")(response);
+    block.transaction[1].txid=response;
+    block.transaction[1].vout[0].coinbase="Mining like a dwarf";
+    block.transaction[1].vout[0].value=600000000;
+    block.transaction[1].vout[0].pk=global.peertable.node[0].publicKey;
+    //block.transaction[1].vout.signature
 
   global.blockchain.block[#global.blockchain.block]=block
   //BlockchainSync@OutputBroadcastPort(block)(response);

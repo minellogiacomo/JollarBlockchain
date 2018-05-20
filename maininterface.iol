@@ -22,7 +22,7 @@ type TxIn: void {
 
 type transaction: void {
   .txid: string
-  .size: int
+  //.size: int
   .vin : TxIn
   .vout: TxOut
 }
@@ -38,7 +38,7 @@ type block: void {
 .avgtime: long
 .hash:string
 .difficulty: double
-.transactionnumber: int
+//.transactionnumber: int
 .transaction: transaction
 .Pow:long //TO DO: at least and at most 1
 }
