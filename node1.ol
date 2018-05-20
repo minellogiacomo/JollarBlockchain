@@ -132,13 +132,14 @@ init {
   } ;
  new_queue @QueueUtils("transactionqueque" + global.status.myID)(response) //response=bool
   //global.blockchain=blockchainsync
+
 }
 
 main { //all parallel?
   [DemoTx(TxValue)(response) {
    //compose tx, broadcast tx
    onetime=false;
-   for ( i = 0, i < #global.peertable.node, i++  ){
+   for ( i = 0, i < #global.peertable.node, i++  ){ //for element in global.peertable.node?
      if (global.peertable.node[i].location==TxValue.location){
        TxValue.publicKey=global.peertable.node[i].publicKey
      } else{
@@ -150,43 +151,40 @@ main { //all parallel?
         response=false
       }
      }
-   }
-  with ( transaction ){
+   };
       md5@MessageDigest("Secure random intance")(response);
-      .txid=response|
+      transaction.txid=response|
       //.size=
       //add procedure to find transaction input
       // the idea is: find the most recent unspent tx where the total amount add at least to the output
       //So:  check if spent, check if value summs up
+      sum=0;
       for( i = #global.block.block-1, i=0, i-- ) {
         for( j = #global.block.block[i].transaction.vout-1, i=0, i-- ) {
-
-        blockchain.block[i].transaction.vout[j].value
+        if((TxValue.value-sum>0) and (/*non spesa*/)) {
+          //blockchain.block[i].transaction.vout[j].value
+          sum=sum+blockchain.block[i].transaction.vout[j].value;
+          transaction.vin[#transaction.vin].txid=blockchain.block[i].transaction.txid;
+          transaction.vin[#transaction.vin].index=j
+        }
         }
        };
-
-
-      .vin[].txid=
-      .vin[].index=
-      //.vout[0].n= deprecated use # instead
-      .vout[0].value=TxValue.value|
-      .vout[0].pk=TxValue.publicKey
+      transaction.vout[0].value=TxValue.value|
+      transaction.vout[0].pk=TxValue.publicKey
       //.vout[0].signature=
 
-  };
   TransactionBroadcast@OutputBroadcastPort(transaction)(response);
   //create block
-  with (block){
-     md5@MessageDigest(#global.blockchain.block-1)(response);
-    .previousBlockHash=response|
-    .version="1" |
-    .size=1 |
-    .n=#global.blockchain.block |
-    .difficulty=2; //costante per operations
+    md5@MessageDigest(#global.blockchain.block-1)(response);
+    block.previousBlockHash=response|
+    block.version="1" |
+    block.size=1 |
+    block.n=#global.blockchain.block |
+    block.difficulty=2; //costante per operations
     getCurrentTimeMillis @Time()(millis);
-    .time=millis|
+    block.time=millis|
     getnetworkaveragetime;
-    .avgtime=global.avgtime;
+    block.avgtime=global.avgtime;
     undef(global.avgtime)|
     md5@MessageDigest(block.previousBlockHash+ //better define order and what to hash
                       block.size+
@@ -195,12 +193,13 @@ main { //all parallel?
                       block.time+
                       block.avgtime
                       block.difficulty)(response)
-    .hash=response;
-    .transactionnumber=2; //per ora = a 1
-    .transaction[0]=transaction;
+    block.hash=response;
+    block.transactionnumber=2; //per ora = a 1
+    block.transaction[0]=transaction;
     //coinbase
-    .transaction[1]=
-  }
+    //define coinbase as a global var (type transaction)?
+    block.transaction[1]=
+
   global.blockchain.block[#global.blockchain.block]=block
   //BlockchainSync@OutputBroadcastPort(block)(response);
   //BlockBroadcast@OutputBroadcastPort(block)(response);
@@ -209,7 +208,7 @@ main { //all parallel?
 
  [PeerDiscovery(peertableother)(response) {
  response=global.peertable;
- global.peertable << peertableother
+ global.peertable << peertableother;
  response=true
 }]
  [BlockBroadcast(block)(response) {
@@ -218,7 +217,7 @@ main { //all parallel?
    response=true
  }]
  [TxBroadcast(transaction)(response) {
-  if (true) //transaction is valid
+  if (true) //+transaction is valid +was it so hard to import cointain()?
    QueueReq.queue_name = "transactionqueque" + global.status.myID |
    QueueReq.element = transaction;
   push @QueueUtils(QueueReq)(response)
