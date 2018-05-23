@@ -50,7 +50,7 @@ type blockchain: void {
 type Node: void {
   .publicKey: string
   .privateKey?: string
-  .location?: string
+  .location: string
 }
 
 type peertable: void {

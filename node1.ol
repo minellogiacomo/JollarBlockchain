@@ -158,7 +158,7 @@ main { //all parallel?
     block.previousBlockHash=response|
     block.version="1" |
     block.size=1 |
-    block.n=#global.blockchain.block |
+    block.n=#global.blockchain.block |//to change, find # with previous block hash
     block.difficulty=2; //costante per ora
     getCurrentTimeMillis @Time()(millis);
     block.time=millis|
@@ -183,9 +183,12 @@ main { //all parallel?
     block.transaction[1].vout[0].pk=global.peertable.node[0].publicKey;
     //block.transaction[1].vout.signature
 
+   //+ pow
+
   global.blockchain.block[#global.blockchain.block]=block
-  //BlockchainSync@OutputBroadcastPort(block)(response);
-  //BlockBroadcast@OutputBroadcastPort(block)(response);
+  BlockBroadcast@OutputBroadcastPort(block)(response);
+  //response= location + prevhash array
+  BlockchainSync@OutputBroadcastPort(block)(response);
 
  }]
 
@@ -194,20 +197,29 @@ main { //all parallel?
  global.peertable << peertableother;
  response=true
 }]
+
  [BlockBroadcast(block)(response) {
-  if (true) // blockverification
-   global.blockchain.block[block.n] = block|
+  if (true) // blockverification ++++use instanceof to verify sintax
+   {global.blockchain.block[#global.blockchain.block] = block|
    response=true
+   }
  }]
+
+ [BlockchainSync(block)(response){
+  //mando l'ultimo blocco finche prevblockhash non corrisponde?
+   }]
+
  [TxBroadcast(transaction)(response) {
   if (true) //+transaction is valid +was it so hard to import cointain()?
    QueueReq.queue_name = "transactionqueque" + global.status.myID |
    QueueReq.element = transaction;
   push @QueueUtils(QueueReq)(response)
 }]
+
  [NetworkVisualizer()(response) {
   response = global.status.myID
 }]
+
  [TimeBroadcast()(response) {
   getCurrentTimeMillis @Time()(millis);
   response = millis

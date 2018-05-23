@@ -34,4 +34,6 @@ main
     OutPort.location="socket://localhost:9001";
     DemoTx@OutPort(TX3)(response);
     if (response){println@Console( "TX3 executed" )()};
+
+    //add NetworkVisualizer call
 }
