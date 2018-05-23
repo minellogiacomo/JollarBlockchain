@@ -71,21 +71,25 @@ define creategenesisblock {
   */
 
 define powverification{
- //add # check, origin check(and chain type check?)
-  for ( i=0, i<#powchain, i++ ) {
+ //and chain type check?
+ if (#block.powchain==block.difficulty && block.hash%block.powchain[0]==0){
+  for ( i=0, i<#block.powchain, i++ ) {
+    if (block.powchain[i]<=68){
     powReq.base=2;
-    powReq.exponent=powchain[i]-1;
+    powReq.exponent=block.powchain[i]-1;
     pow@Math(powReq)(response);
-    m=response%powchain[i];
+    m=response%block.powchain[i];
     if (m==1){pseudoprime=true} else {pseudoprime=false}
-  }
+  } else {pseudoprime=false} //or something else false
+ }
+}
 }
 
 define findpeer {
  tavola << global.peertable;
  undef(tavola.node[0].privateKey);
 PeerDiscovery@OutputBroadcastPort(tavola)(response);
- global.peertable << response //to do: remove duplicates
+ global.peertable << response //automatic overwritten
 }
 
 define getnetworkaveragetime {

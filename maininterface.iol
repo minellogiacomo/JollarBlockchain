@@ -37,7 +37,7 @@ type block: void {
 .time: long //avoid year2038 problem
 .avgtime: long
 .hash:string
-.difficulty: double
+.difficulty: long
 //.transactionnumber: int
 .transaction: transaction
 .Pow:long //TO DO: at least and at most 1
