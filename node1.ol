@@ -42,7 +42,6 @@ execution {concurrent}
 constants {}
 
 define creategenesisblock {
-  //use with?
  global.blockchain.block[0].previousBlockHash = "0" ;
  global.blockchain.block[0].version="1"
   global.blockchain.block[0].size = 1 ;
@@ -65,14 +64,22 @@ define creategenesisblock {
 /*
  define verification{}
  define blockverification{}
- define powverification{}
  define transactionverification{}
  define signatureverification{}
  define applysignature{}
  define generatekeypair{}
   */
 
-define powverification{}
+define powverification{
+ //add # check, origin check(and chain type check?)
+  for ( i=0, i<#powchain, i++ ) {
+    powReq.base=2;
+    powReq.exponent=powchain[i]-1;
+    pow@Math(powReq)(response);
+    m=response%powchain[i];
+    if (m==1){pseudoprime=true} else {pseudoprime=false}
+  }
+}
 
 define findpeer {
  tavola << global.peertable;
@@ -217,6 +224,7 @@ main { //all parallel?
    QueueReq.queue_name = "transactionqueque" + global.status.myID |
    QueueReq.element = transaction;
   push @QueueUtils(QueueReq)(response)
+  //START POW?
 }]
 
  [NetworkVisualizer()(response) {
