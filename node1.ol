@@ -245,7 +245,10 @@ main { //all parallel?
 }]
 
  [NetworkVisualizer()(response) {
-  response = global.status.myID
+  response.ID = global.status.myID;
+  response.pk=global.peertable.node[0].publicKey;
+  response.blockchain=global.blockchain;
+  response.blockchainn=#global.blockchain
 }]
 
  [TimeBroadcast()(response) {

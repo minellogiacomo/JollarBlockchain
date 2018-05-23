@@ -13,5 +13,7 @@ outputPort NetworkPort { //broadcast
 
 main{
 NetworkVisualizer@NetworkPort()(response);
+getCurrentTimeMillis @Time()(millis);
+println@Console(millis)();
 println@Console(response)()
 }
