@@ -48,6 +48,14 @@ define creategenesisblock {
   global.blockchain.block[0].n = 0 ;
   //global.blockchain.block[0].avgtime=
   global.blockchain.block[0].difficulty = 1 ;
+  md5@MessageDigest(global.blockchain.block[0].previousBlockHash+ //better define order and what to hash
+                    global.blockchain.block[0].size+
+                    global.blockchain.block[0].version+
+                    global.blockchain.block[0].n+
+                    global.blockchain.block[0].time+
+                    global.blockchain.block[0].avgtime
+                    global.blockchain.block[0].difficulty)(response)
+  global.blockchain.block[0].hash=response;
   global.blockchain.block[0].transactionnumber = 1 ;
   global.blockchain.block[0].transaction.txid = "random string?" ;
   global.blockchain.block[0].transaction.size = 1 ;
@@ -63,12 +71,17 @@ define creategenesisblock {
 }
 /*
  define verification{}
- define blockverification{}
  define transactionverification{}
  define signatureverification{}
  define applysignature{}
  define generatekeypair{}
   */
+define blockverification{
+  if ((currentblock instanceof block)&&
+      (block.n >= 0)){ //add more conditions
+    response=true
+  }
+}
 
 define powverification{
  //and chain type check?
