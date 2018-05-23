@@ -62,7 +62,7 @@ interface DemoTxInterface {
 }
 
 interface BlockchainSyncInterface {
-  RequestResponse: BlockchainSync(blockchain)(bool)//bool or block n. & location?
+  RequestResponse: BlockchainSync(void)(blockchain)//bool or block n. & location?
 }
 
 interface BlockBroadcastInterface {

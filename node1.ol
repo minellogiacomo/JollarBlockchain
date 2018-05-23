@@ -105,9 +105,11 @@ init {
  global.peertable.node[0].location = global.status.myLocation ; //use #array?
   if (global.status.phase == 0) {
    creategenesisblock
-  } ;
+  } else {
+    blockchainsync@OutputBroadcastPort()(response);
+    global.blockchain=response //TO DO: FIND HOW TO TAKE JUST THE LONGHEST BLOCKCHAIN (+IF IT'S A VALID ONE)
+  }
  new_queue @QueueUtils("transactionqueque" + global.status.myID)(response) //response=bool
-  //global.blockchain=blockchainsync
 
 }
 
@@ -157,9 +159,10 @@ main { //all parallel?
     md5@MessageDigest(#global.blockchain.block-1)(response);
     block.previousBlockHash=response|
     block.version="1" |
-    block.size=1 |
-    block.n=#global.blockchain.block |//to change, find # with previous block hash
-    block.difficulty=2; //costante per ora
+    block.size=1 ;
+    //to change, find n with previous block hash
+    block.n=#global.blockchain.block |
+    block.difficulty=2; //costante per ora, in futuro basarsi su target
     getCurrentTimeMillis @Time()(millis);
     block.time=millis|
     getnetworkaveragetime;
@@ -198,15 +201,15 @@ main { //all parallel?
  response=true
 }]
 
- [BlockBroadcast(block)(response) {
+ [BlockBroadcast(block)(response) { //ONE WAY?
   if (true) // blockverification ++++use instanceof to verify sintax
    {global.blockchain.block[#global.blockchain.block] = block|
    response=true
    }
  }]
 
- [BlockchainSync(block)(response){
-  //mando l'ultimo blocco finche prevblockhash non corrisponde?
+ [BlockchainSync()(response){
+   response=global.blockchain
    }]
 
  [TxBroadcast(transaction)(response) {
