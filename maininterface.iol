@@ -1,4 +1,3 @@
-
 //define subtype cardinality
 
 type TxOut: void {
@@ -32,7 +31,7 @@ type block: void {
 .previousBlockHash: string
 .size: int
 .n:long
-.type=string //type of pow chain
+.type:string //type of pow chain
 .merkleroot?:string //multiple tx?
 .time: long //avoid year2038 problem
 .avgtime: long
