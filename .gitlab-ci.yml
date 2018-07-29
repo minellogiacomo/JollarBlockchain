@@ -1,0 +1,10 @@
+image: jolielang/jolie
+
+stages:
+  - build
+
+# Stage "build"
+build1:
+  stage: build
+  script:
+    - jolie *.ol
