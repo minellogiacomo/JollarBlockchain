@@ -9,11 +9,20 @@ outputPort NetworkPort { //broadcast
   Interfaces: NetworkVisualizerInterface
 }
 
+inputPort InPort {
+ Location: "socket://localhost:9001"
+ Protocol: http
+ Interfaces: DemoTxInterface //more to come
+}
+
 //execution {concurrent}
 
 main{
-NetworkVisualizer@NetworkPort()(response);
+[DemoTx(TxValue)(response){
+NetworkVisualizer@NetworkPort()(r);
 getCurrentTimeMillis @Time()(millis);
 println@Console(millis)();
-println@Console(response)()
+println@Console(r)();
+response = true
+}]
 }
