@@ -1,6 +1,7 @@
-type KeyPair: void {
-  .privatepublic?: raw
+type KPair: void {
+  .public?: string
+  .private?: string
 }
 interface GenSigInterface {
-    RequestResponse: KeyFactory(void)(KeyPair)
+    RequestResponse: KeyFactory(void)(KPair)
 }
