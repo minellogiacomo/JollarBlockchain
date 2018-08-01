@@ -1,7 +1,6 @@
 package example;
-//TO DO: optimize import
+//TO DO: optimize
 import jolie.runtime.JavaService;
-import jolie.runtime.Value;
 import java.security.*;
 import java.io.*;
 
@@ -15,18 +14,18 @@ public class GenSig extends JavaService {
           KeyPair pair = keyGen.generateKeyPair();
           PrivateKey priv = pair.getPrivate();
           PublicKey pub = pair.getPublic();
-          /* save key in a file */
-          byte[] key = pub.getEncoded();
+          /* save key also in a file */
+          byte[] key1 = pub.getEncoded();
           FileOutputStream keyfos1 = new FileOutputStream("pubk");
-          keyfos1.write(key);
+          keyfos1.write(key1);
           keyfos1.close();
-          byte[] key = priv.getEncoded();
+          byte[] key2 = priv.getEncoded();
           FileOutputStream keyfos2 = new FileOutputStream("privk");
-          keyfos2.write(key);
+          keyfos2.write(key2);
           keyfos2.close();
           ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
-          outputStream.write( priv );
-          outputStream.write( pub );
+          outputStream.write( key1 );
+          outputStream.write( key2 );
           byte risp[] = outputStream.toByteArray( );
           outputStream.close();
           return risp;

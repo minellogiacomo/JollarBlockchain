@@ -1,5 +1,5 @@
 //TO DO: document embedding process
-//TO DISCUSS: automate on GitLab? 
+//TO DISCUSS: automate on GitLab?
 include "console.iol" //console
 include "GenSigInterface.iol"
 outputPort GenSigPort {
@@ -10,6 +10,6 @@ embedded {
 }
 main
 {
-    KeyFactory@GenSigPort()(response);
-    println@Console(response.reply)()
+    GenSig@GenSigPort()(response);
+    println@Console(response)()
 }
