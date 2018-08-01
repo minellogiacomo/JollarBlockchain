@@ -36,4 +36,9 @@ main
     if (response){println@Console( "TX3 executed" )()};
 
     //add NetworkVisualizer call
+    TXdummy.value=0;
+    TXdummy.location="socket://localhost:9000";
+    OutPort.location="socket://localhost:9000";
+    DemoTx@OutPort(TXdummy)(response);
+    if (response){println@Console( "TXdummy executed" )()}
 }
