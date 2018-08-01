@@ -1,4 +1,4 @@
-//define subtype cardinality
+//TO DO: define subtype cardinality
 
 type TxOut: void {
   .value: long //in Jollaroshi 1J=100,000,000 Jollaroshi

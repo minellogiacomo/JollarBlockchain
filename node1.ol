@@ -1,3 +1,4 @@
+//TO DO: remove unused import
 include "console.iol" //console
 include "message_digest.iol" //md5
 include "math.iol" //random and pow
@@ -37,9 +38,12 @@ inputPort InPort {
  Interfaces: DemoTxInterface //more to come
 }
 
+//Mandatory!
 execution {concurrent}
 
+//Add constants if necessary
 constants {}
+
 
 define creategenesisblock {
  global.blockchain.block[0].previousBlockHash = "0" ;
@@ -64,8 +68,8 @@ define creategenesisblock {
   global.blockchain.block[0].transaction.vout.value = 6 ;
   global.blockchain.block[0].transaction.vout.pk = global.peertable.node[0].publicKey ;
   global.blockchain.block[0].transaction.vout.coinbase = "whatever, not used" ;
-  //global.blockchain.block[0].transaction.vout.signature=applySignature@embedd()()
-  //add pow
+  //TO DO:global.blockchain.block[0].transaction.vout.signature=applySignature@embedd()()
+  //TO DO:add pow
   getCurrentTimeMillis @Time()(global.blockchain.block[0].time);
   md5 @MessageDigest("Insert Header")(global.blockchain.block[0].hash)
 }
@@ -76,6 +80,9 @@ define creategenesisblock {
  define applysignature{}
  define generatekeypair{}
   */
+
+
+//TO DO: finish conditions
 define blockverification{
   if ((currentblock instanceof block)&&
       (block.n >= 0)){ //add more conditions
@@ -83,6 +90,8 @@ define blockverification{
   }
 }
 
+
+//TO DO: finish conditions
 define powverification{
  //and chain type check?
  if (#block.powchain==block.difficulty && block.hash%block.powchain[0]==0){
@@ -98,12 +107,14 @@ define powverification{
 }
 }
 
+
 define findpeer {
  tavola << global.peertable;
  undef(tavola.node[0].privateKey);
 PeerDiscovery@OutputBroadcastPort(tavola)(response);
  global.peertable << response //automatic overwritten
 }
+
 
 define getnetworkaveragetime {
  TimeBroadcast @OutputBroadcastPort()(response); //undef global.avgtime after use
@@ -114,32 +125,43 @@ define getnetworkaveragetime {
  }
 }
 
+
+
+//Inizializzo lo stato del nodo
+//TO DISCUSS: Implementare salvataggio e ripristino da file?
+//TO DO: Verificare se è possibile parallelizzare le istruzioni
 init {
+ //Per ora utilizziamo un handler degli errori generico, in seguito sarebbe utilie essere più specifici per favorire il debug
  install(TypeMismatch => println @Console("TypeMismatch: " + main.TypeMismatch)()) ;
   global.status.myID = 1 ;
   global.status.myLocation = InPort.location ;
   global.status.phase = 0; //0=create Genesis Block
+  //definisco un blocco di istruzioni per gestirne l'ordine di esecuzione
  {
   getCurrentTimeMillis @Time()(millis);
   global.status.startUpTime = millis
  } ;
- // generatekeypair;
+ //TO DO: generatekeypair; //in progress
  global.peertable.node[0].publicKey = "dummy public key";
  global.peertable.node[0].privateKey = "dummy private key";
  global.peertable.node[0].location = global.status.myLocation ; //use #array?
+  //Oppure utilizziamo il node number?
   if (global.status.phase == 0) {
    creategenesisblock
   } else {
     blockchainsync@OutputBroadcastPort()(response);
     global.blockchain=response //TO DO: FIND HOW TO TAKE JUST THE LONGHEST BLOCKCHAIN (+IF IT'S A VALID ONE)
   }
+ //Creo una coda per conservare le transazioni da processare
  new_queue @QueueUtils("transactionqueque" + global.status.myID)(response) //response=bool
-
 }
 
-main { //all parallel?
+
+
+main {
+  //parametrize code,
   [DemoTx(TxValue)(response) {
-   onetime=false;
+   onetime=false; // a cosa serve questo parametro?
    for ( i = 0, i < #global.peertable.node, i++  ){ //for element in global.peertable.node?
      if (global.peertable.node[i].location==TxValue.location){
        TxValue.publicKey=global.peertable.node[i].publicKey
@@ -153,7 +175,7 @@ main { //all parallel?
       }
      }
    };
-      md5@MessageDigest("Secure random intance")(response);
+      md5@MessageDigest("Secure random instance")(response);
       transaction.txid=response|
       //.size=
       //add procedure to find transaction input
@@ -177,21 +199,22 @@ main { //all parallel?
         transaction.vout[#transaction.vout].pk=global.peertable.node[0].publicKey;
       };
       //.vout[0].signature=
-
+    //Una volta creata la transazione devo inviarla in broadcast per permettere agli altri nodi di inserirla nei loro blocchi
     TransactionBroadcast@OutputBroadcastPort(transaction)(response);
-    //create block
+    //Quando ho una transazione devo creare un blocco
     md5@MessageDigest(#global.blockchain.block-1)(response);
     block.previousBlockHash=response|
     block.version="1" |
     block.size=1 ;
     //to change, find n with previous block hash
     block.n=#global.blockchain.block |
-    block.difficulty=2; //costante per ora, in futuro basarsi su target
+    block.difficulty=2; //costante per ora, in futuro basarsi su target quando implementeremo la POW
     getCurrentTimeMillis @Time()(millis);
     block.time=millis|
     getnetworkaveragetime;
     block.avgtime=global.avgtime;
     undef(global.avgtime)|
+    //per poter implementare la signature del blocco ho bisogno dell'hash dei sui dati
     md5@MessageDigest(block.previousBlockHash+ //better define order and what to hash
                       block.size+
                       block.version+
@@ -219,12 +242,17 @@ main { //all parallel?
 
  }]
 
+
+ //Se ricevo una richiesta si peerdicovery invio la mia peertable e la aggiorno con eventuali nuovi nodi
  [PeerDiscovery(peertableother)(response) {
  response=global.peertable;
  global.peertable << peertableother;
  response=true
-}]
+ }]
 
+
+ //Se ricevo un blocco ne attesto la validità e se opportuno la inserisco nella mia blockchain
+ //remove response?
  [BlockBroadcast(block)(response) { //ONE WAY?
   if (true) // blockverification ++++use instanceof to verify sintax
    {global.blockchain.block[#global.blockchain.block] = block|
@@ -232,10 +260,14 @@ main { //all parallel?
    }
  }]
 
+
+ //Se ricevo una richiesta si BlockchainSync invio la mia blockchain in modo che il mittente possa selezionare la blockchain più lunga
  [BlockchainSync()(response){
    response=global.blockchain
    }]
 
+
+ //Se ricevo una transazione ne attesto la validità e se opportuno la inserisco nella mia coda delle transazioni da processare
  [TxBroadcast(transaction)(response) {
   if (true) //+transaction is valid +was it so hard to import cointain()?
    QueueReq.queue_name = "transactionqueque" + global.status.myID |
@@ -244,6 +276,8 @@ main { //all parallel?
   //START POW?
 }]
 
+
+//Se ricevo una richiesta di NetworkVisualizer invio i dati richiesti: TO-DO finish data structure
  [NetworkVisualizer()(response) {
   response.ID = global.status.myID;
   response.pk=global.peertable.node[0].publicKey;
@@ -251,9 +285,12 @@ main { //all parallel?
   response.blockchainn=#global.blockchain
 }]
 
+
+ //Se ricevo una richiesta di TimeBroadcast invio il mio segnale orario in modo che il mittente possa calcolare il network average time
  [TimeBroadcast()(response) {
   getCurrentTimeMillis @Time()(millis);
   response = millis
 }]
+
 
 }

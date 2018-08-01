@@ -1,3 +1,4 @@
+//TO DO: rename and document 
 type KeyPair: void {
   .privatepublic?: raw
 }

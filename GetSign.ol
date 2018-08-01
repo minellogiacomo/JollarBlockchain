@@ -1,3 +1,5 @@
+//TO DO: document embedding process
+//TO DISCUSS: automate on GitLab? 
 include "console.iol" //console
 include "GenSigInterface.iol"
 outputPort GenSigPort {

@@ -1,3 +1,4 @@
+//TO DO: remove unused import
 include "console.iol"
 include "scheduler.iol" //pianificare attività?
 include "time.iol" //getCurrentTimeMillis
@@ -15,7 +16,7 @@ inputPort InPort {
  Interfaces: DemoTxInterface //more to come
 }
 
-//execution {concurrent}
+//execution {concurrent} is this necessary? Adesso potrebbe funzionare ma viene comunque chiamato una sola volta
 
 main{
 [DemoTx(TxValue)(response){

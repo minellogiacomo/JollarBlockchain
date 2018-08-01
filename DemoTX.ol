@@ -1,3 +1,4 @@
+//TO DO: remove unused import
 include "console.iol" //console
 include "message_digest.iol" //md5
 include "math.iol" //random and pow
@@ -15,6 +16,7 @@ outputPort OutPort {
  Interfaces: DemoTxInterface
 }
 
+////TO DO: document 
 main
 {
     TX1.value=100000000;
@@ -35,7 +37,7 @@ main
     DemoTx@OutPort(TX3)(response);
     if (response){println@Console( "TX3 executed" )()};
 
-    //add NetworkVisualizer call
+    //TO DO: remove this hack (use another interface maybe?,at least send an empty request)
     TXdummy.value=0;
     TXdummy.location="socket://localhost:9000";
     OutPort.location="socket://localhost:9000";
