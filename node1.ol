@@ -259,8 +259,8 @@ main {
  //Se ricevo un blocco ne attesto la validità e se opportuno la inserisco nella mia blockchain
  //remove response?
  [BlockBroadcast(block)(response) { //ONE WAY?
-  if (global.blockchain.block instanceof block) // TO DO: blockverification
-   {global.blockchain.block[#global.blockchain.block] = block|
+  if (block instanceof block){ // TO DO: blockverification
+    global.blockchain.block[#global.blockchain.block] = block|
    response=true
    }
  }]
@@ -274,11 +274,11 @@ main {
 
  //Se ricevo una transazione ne attesto la validità e se opportuno la inserisco nella mia coda delle transazioni da processare
  [TransactionBroadcast(transaction)(response) {
-  if (true) //+transaction is valid +was it so hard to import cointain()?
+  if (transaction instanceof transaction) //TO DO: transaction is valid?
    QueueReq.queue_name = "transactionqueque" + global.status.myID |
    QueueReq.element = transaction;
    push @QueueUtils(QueueReq)(response)
-  //START POW?
+  //START POW? only if not currently running
 }]
 
 
