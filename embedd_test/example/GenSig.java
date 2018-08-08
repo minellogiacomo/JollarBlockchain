@@ -4,6 +4,8 @@ import jolie.runtime.JavaService;
 import java.security.*;
 import jolie.net.CommMessage;
 import java.io.*;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 public class GenSig extends JavaService {
 

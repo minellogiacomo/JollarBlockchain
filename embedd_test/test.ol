@@ -1,31 +1,18 @@
-interface MyConsoleInterface {
-    OneWay:    println( string )
+include "console.iol"
+interface KeyInterface {
+    RequestResponse: keyFactory(any )( raw )
 }
 
-interface TwiceInterface {
-    RequestResponse:     twiceInt( int )( int ),
-                        twiceDoub( double )( double )
-}
-
-outputPort MyConsole {
-    Interfaces: MyConsoleInterface
-}
-
-outputPort Twice {
-    Interfaces: TwiceInterface
+outputPort Key {
+    Interfaces: KeyInterface
 }
 
 embedded {
-    Java:     "example.Twice" in Twice,
-            "example.MyConsole" in MyConsole
+    Java:    "example.GenSig" in Key
 }
 
 main
 {
-    intExample = 3;
-    doubleExample = 3.14;
-    twiceInt@Twice( intExample )( intExample );
-    twiceDoub@Twice( doubleExample )( doubleExample );
-    println@MyConsole("intExample twice: " + intExample );
-    println@MyConsole("doubleExample twice: " + doubleExample )
+    keyFactory@Key()(rawkeys);
+    println@Console(rawkeys)()
 }
