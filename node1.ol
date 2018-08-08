@@ -94,8 +94,11 @@ define blockverification{
 
 //TO DO: finish pow verification conditions
 define powverification{
- //and chain type check?
- if (true){
+  //k è la lunghezza della catena p_0, p_1, p_2, .. , p_(k-1)
+  //p_k/k è la difficoltà della catena
+  //se p_k è un numero primo per fermat la catena è considerata di lunghezza maggiore (+1), vine accettata
+  //+verifica della validità delle catene, verifica primalità.
+  // qual è il nostro limite di computazione (nella verifica)? 68?
   for ( i=0, i<#block.powchain, i++ ) {
     if (block.powchain[i]<=68){
     powReq.base=2;
@@ -104,7 +107,7 @@ define powverification{
     m=response%block.powchain[i];
     if (m==1){pseudoprime=true} else {pseudoprime=false}
   } else {pseudoprime=false} //can't compute over 68
- }
+
 }
 }
 
@@ -203,6 +206,7 @@ main {
     //TO DO: define response utility
     TransactionBroadcast@OutputBroadcastPort(transaction)(response);
     //Quando ho una transazione devo creare un blocco
+    //TO DO: aggiungere alla coda delle transazioni
     md5@MessageDigest(#global.blockchain.block-1)(response);
     block.previousBlockHash=response|
     block.version="1" |
@@ -255,7 +259,7 @@ main {
  //Se ricevo un blocco ne attesto la validità e se opportuno la inserisco nella mia blockchain
  //remove response?
  [BlockBroadcast(block)(response) { //ONE WAY?
-  if (true) // blockverification ++++use instanceof to verify sintax
+  if (global.blockchain.block instanceof block) // TO DO: blockverification
    {global.blockchain.block[#global.blockchain.block] = block|
    response=true
    }
@@ -269,7 +273,7 @@ main {
 
 
  //Se ricevo una transazione ne attesto la validità e se opportuno la inserisco nella mia coda delle transazioni da processare
- [TxBroadcast(transaction)(response) {
+ [TransactionBroadcast(transaction)(response) {
   if (true) //+transaction is valid +was it so hard to import cointain()?
    QueueReq.queue_name = "transactionqueque" + global.status.myID |
    QueueReq.element = transaction;
@@ -278,7 +282,8 @@ main {
 }]
 
 
-//Se ricevo una richiesta di NetworkVisualizer invio i dati richiesti: TO-DO finish data structure
+//Se ricevo una richiesta di NetworkVisualizer invio i dati richiesti
+//TO DO: finish data structure
  [NetworkVisualizer()(response) {
   response.ID = global.status.myID;
   response.pk=global.peertable.node[0].publicKey;
