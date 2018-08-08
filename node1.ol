@@ -73,6 +73,7 @@ define creategenesisblock {
   getCurrentTimeMillis @Time()(global.blockchain.block[0].time);
   md5 @MessageDigest("Insert Header")(global.blockchain.block[0].hash)
 }
+
 /*
  define verification{}
  define transactionverification{}
@@ -91,10 +92,10 @@ define blockverification{
 }
 
 
-//TO DO: finish conditions
+//TO DO: finish pow verification conditions
 define powverification{
  //and chain type check?
- if (#block.powchain==block.difficulty && block.hash%block.powchain[0]==0){
+ if (true){
   for ( i=0, i<#block.powchain, i++ ) {
     if (block.powchain[i]<=68){
     powReq.base=2;
@@ -102,7 +103,7 @@ define powverification{
     pow@Math(powReq)(response);
     m=response%block.powchain[i];
     if (m==1){pseudoprime=true} else {pseudoprime=false}
-  } else {pseudoprime=false} //or something else false
+  } else {pseudoprime=false} //can't compute over 68
  }
 }
 }
@@ -131,8 +132,8 @@ define getnetworkaveragetime {
 //TO DISCUSS: Implementare salvataggio e ripristino da file?
 //TO DO: Verificare se è possibile parallelizzare le istruzioni
 init {
- //Per ora utilizziamo un handler degli errori generico, in seguito sarebbe utilie essere più specifici per favorire il debug
- install(TypeMismatch => println @Console("TypeMismatch: " + main.TypeMismatch)()) ;
+ //TO DO:Per ora utilizziamo un handler degli errori generico, in seguito sarebbe utilie essere più specifici per favorire il debug
+  install(TypeMismatch => println @Console("TypeMismatch: " + main.TypeMismatch)()) ;
   global.status.myID = 1 ;
   global.status.myLocation = InPort.location ;
   global.status.phase = 0; //0=create Genesis Block
@@ -178,7 +179,6 @@ main {
       md5@MessageDigest("Secure random instance")(response);
       transaction.txid=response|
       //.size=
-      //add procedure to find transaction input
       // the idea is: find the most recent unspent tx where the total amount add at least to the output
       //So:  check if spent, check if value summs up
       sum=0;
@@ -200,20 +200,21 @@ main {
       };
       //.vout[0].signature=
     //Una volta creata la transazione devo inviarla in broadcast per permettere agli altri nodi di inserirla nei loro blocchi
+    //TO DO: define response utility
     TransactionBroadcast@OutputBroadcastPort(transaction)(response);
     //Quando ho una transazione devo creare un blocco
     md5@MessageDigest(#global.blockchain.block-1)(response);
     block.previousBlockHash=response|
     block.version="1" |
     block.size=1 ;
-    //to change, find n with previous block hash
+    //TO DO: change, find n with previous block hash
     block.n=#global.blockchain.block |
     block.difficulty=2; //costante per ora, in futuro basarsi su target quando implementeremo la POW
-    getCurrentTimeMillis @Time()(millis);
+    getCurrentTimeMillis@Time()(millis);
     block.time=millis|
     getnetworkaveragetime;
     block.avgtime=global.avgtime;
-    undef(global.avgtime)|
+    undef(global.avgtime);
     //per poter implementare la signature del blocco ho bisogno dell'hash dei sui dati
     md5@MessageDigest(block.previousBlockHash+ //better define order and what to hash
                       block.size+
@@ -221,7 +222,7 @@ main {
                       block.n+
                       block.time+
                       block.avgtime
-                      block.difficulty)(response)
+                      block.difficulty)(response);
     block.hash=response;
     block.transaction[0]=transaction;
     //coinbase
@@ -233,13 +234,13 @@ main {
     block.transaction[1].vout[0].pk=global.peertable.node[0].publicKey;
     //block.transaction[1].vout.signature
 
-   //+ pow
+   //TO DO: PoW
 
   global.blockchain.block[#global.blockchain.block]=block
   BlockBroadcast@OutputBroadcastPort(block)(response);
-  //response= location + prevhash array
-  BlockchainSync@OutputBroadcastPort(block)(response);
 
+  //TO DO: clarify this=> response= location + prevhash array
+  BlockchainSync@OutputBroadcastPort(block)(response);
  }]
 
 
@@ -272,7 +273,7 @@ main {
   if (true) //+transaction is valid +was it so hard to import cointain()?
    QueueReq.queue_name = "transactionqueque" + global.status.myID |
    QueueReq.element = transaction;
-  push @QueueUtils(QueueReq)(response)
+   push @QueueUtils(QueueReq)(response)
   //START POW?
 }]
 
@@ -291,6 +292,5 @@ main {
   getCurrentTimeMillis @Time()(millis);
   response = millis
 }]
-
 
 }
