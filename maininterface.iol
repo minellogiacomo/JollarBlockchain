@@ -1,4 +1,5 @@
 //TO DO: define subtype cardinality
+//TO DO: rename subnodes to match code style
 
 type TxOut: void {
   .value: long //in Jollaroshi 1J=100,000,000 Jollaroshi
@@ -9,7 +10,7 @@ type TxOut: void {
 
 type TxValue: void {
   .value: long //in Jollaroshi 1J=100,000,000 Jollaroshi
-  .pk: string
+  .location: string
 }
 
 //UXTO (unspent transaction)
@@ -69,7 +70,7 @@ interface BlockBroadcastInterface {
 }
 
 interface TransactionBroadcastInterface {
-  RequestResponse: TxBroadcast(transaction)(bool)
+  RequestResponse: TransactionBroadcast(transaction)(bool)
 }
 
 interface TimeBroadcastInterface {

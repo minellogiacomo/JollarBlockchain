@@ -16,7 +16,7 @@ outputPort OutPort {
  Interfaces: DemoTxInterface
 }
 
-////TO DO: document 
+////TO DO: document
 main
 {
     TX1.value=100000000;

@@ -47,7 +47,7 @@ constants {}
 
 define creategenesisblock {
  global.blockchain.block[0].previousBlockHash = "0" ;
- global.blockchain.block[0].version="1"
+ global.blockchain.block[0].version="1";
   global.blockchain.block[0].size = 1 ;
   global.blockchain.block[0].n = 0 ;
   //global.blockchain.block[0].avgtime=
@@ -57,8 +57,8 @@ define creategenesisblock {
                     global.blockchain.block[0].version+
                     global.blockchain.block[0].n+
                     global.blockchain.block[0].time+
-                    global.blockchain.block[0].avgtime
-                    global.blockchain.block[0].difficulty)(response)
+                    global.blockchain.block[0].avgtime+
+                    global.blockchain.block[0].difficulty)(response);
   global.blockchain.block[0].hash=response;
   global.blockchain.block[0].transactionnumber = 1 ;
   global.blockchain.block[0].transaction.txid = "random string?" ;
@@ -150,11 +150,11 @@ init {
   if (global.status.phase == 0) {
    creategenesisblock
   } else {
-    blockchainsync@OutputBroadcastPort()(response);
+    BlockchainSync@OutputBroadcastPort()(response);
     global.blockchain=response //TO DO: FIND HOW TO TAKE JUST THE LONGHEST BLOCKCHAIN (+IF IT'S A VALID ONE)
-  }
+  };
  //Creo una coda per conservare le transazioni da processare
- new_queue @QueueUtils("transactionqueque" + global.status.myID)(response) //response=bool
+ new_queue@QueueUtils("transactionqueque" + global.status.myID)(response) //response=bool
 }
 
 
@@ -196,7 +196,7 @@ main {
       transaction.vout[#transaction.vout].pk=TxValue.publicKey;
       if (sum>Tx.Value){
         transaction.vout[#transaction.vout].value=TxValue.value-sum| //why? to better support multiple outputs
-        transaction.vout[#transaction.vout].pk=global.peertable.node[0].publicKey;
+        transaction.vout[#transaction.vout].pk=global.peertable.node[0].publicKey
       };
       //.vout[0].signature=
     //Una volta creata la transazione devo inviarla in broadcast per permettere agli altri nodi di inserirla nei loro blocchi
@@ -221,7 +221,7 @@ main {
                       block.version+
                       block.n+
                       block.time+
-                      block.avgtime
+                      block.avgtime+
                       block.difficulty)(response);
     block.hash=response;
     block.transaction[0]=transaction;
@@ -236,11 +236,11 @@ main {
 
    //TO DO: PoW
 
-  global.blockchain.block[#global.blockchain.block]=block
+  global.blockchain.block[#global.blockchain.block]=block;
   BlockBroadcast@OutputBroadcastPort(block)(response);
 
   //TO DO: clarify this=> response= location + prevhash array
-  BlockchainSync@OutputBroadcastPort(block)(response);
+  BlockchainSync@OutputBroadcastPort(block)(response)
  }]
 
 
