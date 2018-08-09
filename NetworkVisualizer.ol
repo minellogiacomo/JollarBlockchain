@@ -20,7 +20,9 @@ inputPort InPort {
 
 main{
 [DemoTx(TxValue)(response){
+println@Console( "Sending Network Visualizer request to broadcast" )();
 NetworkVisualizer@NetworkPort()(r);
+println@Console( "Get current time" )();
 getCurrentTimeMillis @Time()(millis);
 println@Console(millis)();
 println@Console(r)();

@@ -7,4 +7,9 @@ stages:
 build1:
   stage: build
   script:
-    - jolie *.ol
+    - jolie --check *.ol
+
+build2:
+  stage: build
+  script:
+    - jolie --trace *.ol
