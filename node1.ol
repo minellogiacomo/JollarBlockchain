@@ -11,6 +11,7 @@ include "string_utils.iol" //string operations (id, hash)
 include "time.iol" //getCurrentTimeMillis
 include "maininterface.iol"
 
+//TO DO: rewrite network comms
 outputPort OutputBroadcastPort {
  Location: "socket://localhost:9000"
  Protocol: http
@@ -42,12 +43,15 @@ inputPort InPort {
 execution {concurrent}
 
 //Add constants if necessary
-constants {}
+constants {
+  ROOT="socket://localhost:900"
+}
 
+//TO DO: rewrite procedures as internal services
 
-define creategenesisblock {
- global.blockchain.block[0].previousBlockHash = "0" ;
- global.blockchain.block[0].version="1";
+ define creategenesisblock {
+  global.blockchain.block[0].previousBlockHash = "0" ;
+  global.blockchain.block[0].version="1";
   global.blockchain.block[0].size = 1 ;
   global.blockchain.block[0].n = 0 ;
   //global.blockchain.block[0].avgtime=
