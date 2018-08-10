@@ -188,7 +188,7 @@ main {
    for ( i = 0, i < #global.peertable.node, i++  ){ //for element in global.peertable.node?
      if (global.peertable.node[i].location==TxValue.location){
        println@Console( "destination id found" )();
-       TxValue.publicKey=global.peertable.node[i].publicKey
+       TxValue.publicKey=global.peertable.node[i].publicKey //Error?
      } else{
       if (onetime=false){
       findpeer;
@@ -229,6 +229,7 @@ main {
     //Una volta creata la transazione devo inviarla in broadcast per permettere agli altri nodi di inserirla nei loro blocchi
     //TO DO: define response utility
     println@Console( "Send Transaction to TransactionBroadcast" )();
+    response=true; //should be DemoTX response, TO DO: change naming
     TransactionBroadcast@OutputBroadcastPort(transaction)(response);
     //Quando ho una transazione devo creare un blocco
     //TO DO: aggiungere alla coda delle transazioni
