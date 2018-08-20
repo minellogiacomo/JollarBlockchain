@@ -13,20 +13,8 @@ include "maininterface.iol"
 
 //TO DO: rewrite network comms
 outputPort OutputBroadcastPort {
- Location: "socket://localhost:9000"
  Protocol: http
  Interfaces: PeerDiscoveryInterface,
- BlockBroadcastInterface,
- TransactionBroadcastInterface,
- TimeBroadcastInterface,
- BlockchainSyncInterface
-}
-
-inputPort NetworkPort {
- Location: "socket://localhost:9000"
- Protocol: http
- Interfaces: NetworkVisualizerInterface,
- PeerDiscoveryInterface,
  BlockBroadcastInterface,
  TransactionBroadcastInterface,
  TimeBroadcastInterface,
@@ -36,18 +24,25 @@ inputPort NetworkPort {
 inputPort InPort {
  Location: "socket://localhost:9001"
  Protocol: http
- Interfaces: DemoTxInterface //more to come
+ Interfaces: DemoTxInterface,
+ NetworkVisualizerInterface,
+ PeerDiscoveryInterface,
+ BlockBroadcastInterface,
+ TransactionBroadcastInterface,
+ TimeBroadcastInterface,
+ BlockchainSyncInterface
 }
 
 //Mandatory!
 execution {concurrent}
 
-//Add constants if necessary
+//Add constants when necessary
 constants {
-  ROOT="socket://localhost:900"
+  ROOT="socket://localhost:900",
+  CREATEGENESISBLOCK = true
 }
 
-//TO DO: rewrite procedures as internal services
+//TO DO: test rewrited procedures as internal services (nested internal calls, acses to global var, ecc)
 
  define creategenesisblock {
   global.blockchain.block[0].previousBlockHash = "0" ;
@@ -80,7 +75,6 @@ constants {
 }
 
 /*
- define verification{}
  define transactionverification{}
  define signatureverification{}
  define applysignature{}
@@ -88,106 +82,124 @@ constants {
   */
 
 
-//TO DO: finish conditions
-define blockverification{
-  println@Console( "Starting block verification" )();
-  if ((currentblock instanceof block)&&
-      (block.n >= 0)){ //add more conditions
-    response=true
-  };
-  println@Console( "Block verification finished" )()
-}
+  interface blockVerificationInterface {
+   RequestResponse: blockVerification(block)(bool)
+  }
+  service blockInternalVerification {
+  Interfaces: blockVerificationInterface
+  main {
+   [blockVerification(currentblock)(blockVerificationResponse){
+   println@Console( "Starting block verification" )();
+   if ((currentblock instanceof block)&&
+      (block.n >= 0)){ //TO DO: add more conditions
+       blockVerificationResponse=true
+   };
+   println@Console( "Block verification finished" )()
+   }]
+  }
+  }
 
+  //TO DO: OPTIONAL change data type, don't need all block data just some things
+  interface powVerificationInterface {
+   RequestResponse: powVerification(block)(bool)
+  }
+  service powInternalVerification {
+  Interfaces: powVerificationInterface
+  main {
+   [powVerification(currentblock)(powVerificationResponse){
+     println@Console( "Starting PoW verification" )();
+     //k è la lunghezza della catena p_0, p_1, p_2, .. , p_(k-1)
+     //p_k/k è la difficoltà della catena
+     //se p_k è un numero primo per fermat la catena è considerata di lunghezza maggiore (+1), vine accettata
+     //+verifica della validità delle catene, verifica primalità.
+     // qual è il nostro limite di computazione (nella verifica)? 68?
+     for ( i=0, i<#block.powchain, i++ ) {
+       if (block.powchain[i]<=68){
+       powReq.base=2;
+       powReq.exponent=block.powchain[i]-1;
+       pow@Math(powReq)(response);
+       m=response%block.powchain[i];
+       if (m==1){pseudoprime=true} else {pseudoprime=false}
+     } else {pseudoprime=false} //can't compute over 68
 
-//TO DO: finish pow verification conditions
-define powverification{
-  println@Console( "Startin PoW verification" )();
-  //k è la lunghezza della catena p_0, p_1, p_2, .. , p_(k-1)
-  //p_k/k è la difficoltà della catena
-  //se p_k è un numero primo per fermat la catena è considerata di lunghezza maggiore (+1), vine accettata
-  //+verifica della validità delle catene, verifica primalità.
-  // qual è il nostro limite di computazione (nella verifica)? 68?
-  for ( i=0, i<#block.powchain, i++ ) {
-    if (block.powchain[i]<=68){
-    powReq.base=2;
-    powReq.exponent=block.powchain[i]-1;
-    pow@Math(powReq)(response);
-    m=response%block.powchain[i];
-    if (m==1){pseudoprime=true} else {pseudoprime=false}
-  } else {pseudoprime=false} //can't compute over 68
-
-};
-println@Console( "PoW verification finished" )()
-}
-
+   };
+   println@Console( "PoW verification finished" )()
+   }]
+  }
+  }
 
 define findpeer {
  println@Console( "Starting peer finding" )();
  tavola << global.peertable;
  undef(tavola.node[0].privateKey);
  println@Console( "Send Peer Discovery request" )();
-PeerDiscovery@OutputBroadcastPort(tavola)(response);
- global.peertable << response;
+ for ( i=0, i<#global.peertable.node, i++ ) {
+   OutputBroadcastPort.location="socket://localhost:800"+i;
+   PeerDiscovery@OutputBroadcastPort(tavola)(response);
+    global.peertable << response
+ };
  println@Console( "Peer finding finished" )()
 }
 
 
-define getnetworkaveragetime {
+ define getnetworkaveragetime {
  println@Console( "Get Network Average Time" )();
- TimeBroadcast @OutputBroadcastPort()(response); //undef global.avgtime after use
- if (is_defined(global.avgtime)) {
-  global.avgtime = (global.avgtime + response) / 2
- } else {
-  global.avgtime = response
+ for ( i=0, i<#global.peertable.node, i++ ) {
+   TimeBroadcast @OutputBroadcastPort()(response); //undef global.avgtime after use
+   if (is_defined(global.avgtime)) {
+    global.avgtime = (global.avgtime + response) / 2
+   } else {
+    global.avgtime = response
+  }
 };
  println@Console( "Network Average Time finished" )()
 }
 
 
-
 //Inizializzo lo stato del nodo
-//TO DISCUSS: Implementare salvataggio e ripristino da file?
-//TO DO: Verificare se è possibile parallelizzare le istruzioni
 init {
   println@Console( "Start node init" )();
- //TO DO:Per ora utilizziamo un handler degli errori generico, in seguito sarebbe utilie essere più specifici per favorire il debug
+  //TO DO:Per ora utilizziamo un handler degli errori generico, in seguito sarebbe utilie essere più specifici per favorire il debug
   install(TypeMismatch => println @Console("TypeMismatch: " + main.TypeMismatch)()) ;
   global.status.myID = 1 ;
   global.status.myLocation = InPort.location ;
-  global.status.phase = 0; //0=create Genesis Block
-  //definisco un blocco di istruzioni per gestirne l'ordine di esecuzione
- {
+  global.status.createGenesisBlock = CREATEGENESISBLOCK;
   println@Console( "Get current time" )();
-  getCurrentTimeMillis @Time()(millis);
+  getCurrentTimeMillis@Time()(millis);
   global.status.startUpTime = millis;
-  println@Console( millis )()
- } ;
- //TO DO: generatekeypair; //in progress
- global.peertable.node[0].publicKey = "dummy public key";
- global.peertable.node[0].privateKey = "dummy private key";
- global.peertable.node[0].location = global.status.myLocation ; //use #array?
-  //Oppure utilizziamo il node number?
-  if (global.status.phase == 0) {
+  println@Console( millis )();
+  //TO DO: generatekeypair!!!
+  //global.status.myPublicKey
+  //global.status.myPrivateKey
+  global.peertable.node[0].publicKey = "dummy public key";
+  global.peertable.node[0].privateKey = "dummy private key";
+  global.peertable.node[0].location = global.status.myLocation ; //use #array?
+  if (global.status.createGenesisBlock == true) {
    println@Console( "Create Genesis block" )();
    creategenesisblock
   } else {
-    println@Console( "Send blockchain sync request" )();
-    BlockchainSync@OutputBroadcastPort()(response);
-    global.blockchain=response //TO DO: FIND HOW TO TAKE JUST THE LONGHEST BLOCKCHAIN (+IF IT'S A VALID ONE)
-  };
- //Creo una coda per conservare le transazioni da processare
- println@Console( "Creating Transaction Queque" )();
- new_queue@QueueUtils("transactionqueque" + global.status.myID)(response); //response=bool
- println@Console( "Node init finished" )()
+   findpeer;
+   println@Console( "Send blockchain sync request" )();
+   for ( i=0, i<#global.peertable.node, i++ ) {
+     OutputBroadcastPort.location="socket://localhost:800"+i;
+     BlockchainSync@OutputBroadcastPort()(BlockchainSyncResponse);
+     //TO DO: OPTIONAL add validation
+     global.blockchain << BlockchainSyncResponse
+   }
+ };
+  //Creo una coda per conservare le transazioni da processare
+  println@Console( "Creating Transaction Queque" )();
+  new_queue@QueueUtils("transactionqueque" + global.status.myID)(response); //response=bool
+  println@Console( "Node init finished" )()
 }
 
 
 
 main {
   //parametrize code,
-  [DemoTx(TxValue)(response) {
+  [DemoTx(TxValue)(DemoTXResponse) {
     println@Console( "Answering DemoTx" )();
-   onetime=false; // a cosa serve questo parametro?
+   onetime=false; // a cosa serve questo parametro? triggerare solo una volta il findpeer!
    println@Console( "Find destination id" )();
    for ( i = 0, i < #global.peertable.node, i++  ){ //for element in global.peertable.node?
      if (global.peertable.node[i].location==TxValue.location){
@@ -231,10 +243,13 @@ main {
       };
       //.vout[0].signature=
     //Una volta creata la transazione devo inviarla in broadcast per permettere agli altri nodi di inserirla nei loro blocchi
-    //TO DO: define response utility
+    //TO DO: remove response
     println@Console( "Send Transaction to TransactionBroadcast" )();
-    response=true; //should be DemoTX response, TO DO: change naming
-    TransactionBroadcast@OutputBroadcastPort(transaction)(response);
+    DemoTXResponse=true; //should be DemoTX response, TO DO: change naming
+    for ( i=0, i<#global.peertable.node, i++ ) {
+      OutputBroadcastPort.location="socket://localhost:800"+i;
+      TransactionBroadcast@OutputBroadcastPort(transaction)(response)
+    }|
     //Quando ho una transazione devo creare un blocco
     //TO DO: aggiungere alla coda delle transazioni
     println@Console( "Send md5 hash request - Previous block hash" )();
@@ -262,6 +277,7 @@ main {
     block.hash=response;
     block.transaction[0]=transaction;
     //coinbase
+    //TO DO: define coinbase tx as a constant?
     //define coinbase as a global var (type transaction)?
     md5@MessageDigest("Secure random intance1")(response);
     block.transaction[1].txid=response;
@@ -272,13 +288,19 @@ main {
 
    //TO DO: PoW
 
+  //TO DO: change this, use previous block hash to navigate blockchain
   global.blockchain.block[#global.blockchain.block]=block;
   println@Console( "Send Block to BlockBroadcast" )();
-  BlockBroadcast@OutputBroadcastPort(block)(response);
-
+  for ( i=0, i<#global.peertable.node, i++ ) {
+    OutputBroadcastPort.location="socket://localhost:800"+i;
+    BlockBroadcast@OutputBroadcastPort(block)(response)
+  };
   //TO DO: clarify this=> response= location + prevhash array
   println@Console( "Send BlockchainSync request to broadcast" )();
-  BlockchainSync@OutputBroadcastPort(block)(response)
+  for ( i=0, i<#global.peertable.node, i++ ) {
+    OutputBroadcastPort.location="socket://localhost:800"+i;
+    BlockchainSync@OutputBroadcastPort(global.blockchain)(response)
+  }
  }]
 
 
@@ -293,18 +315,18 @@ main {
 
 
  //Se ricevo un blocco ne attesto la validità e se opportuno la inserisco nella mia blockchain
- //remove response?
- [BlockBroadcast(block)(response) { //ONE WAY?
+ [BlockBroadcast(currentblock)(blockBroadcastResponse) {
    println@Console( "Answering BlockBroadcast" )();
-  if (block instanceof block){ // TO DO: blockverification
+   blockVerification@blockInternalVerification(currentblock)(blockVerificationResponse);
+  if (blockVerificationResponse==true){
     global.blockchain.block[#global.blockchain.block] = block|
-   response=true
+   blockBroadcastResponse=true
   };
    println@Console( "Answering BlockBroadcast finished" )()
  }]
 
 
- //Se ricevo una richiesta si BlockchainSync invio la mia blockchain in modo che il mittente possa selezionare la blockchain più lunga
+ //Se ricevo una richiesta si BlockchainSync invio la mia blockchain in modo che il mittente riceva la blockchain
  [BlockchainSync()(response){
    println@Console( "Answering BlockchainSync" )();
    response=global.blockchain;
