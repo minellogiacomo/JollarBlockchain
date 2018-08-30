@@ -11,7 +11,6 @@ include "string_utils.iol" //string operations (id, hash)
 include "time.iol" //getCurrentTimeMillis
 include "maininterface.iol"
 
-//TO DO: rewrite network comms
 outputPort OutputBroadcastPort {
  Protocol: http
  Interfaces: PeerDiscoveryInterface,
@@ -38,11 +37,13 @@ execution {concurrent}
 
 //Add constants when necessary
 constants {
+  //add min location= 9001? add location!=myself?
   ROOT="socket://localhost:900",
-  CREATEGENESISBLOCK = true
+  CREATEGENESISBLOCK = true,
+  ID=1
 }
 
-//TO DO: test rewrited procedures as internal services (nested internal calls, acses to global var, ecc)
+//TO DO: test rewrited procedures as internal services (nested internal calls, ecc)
 
  define creategenesisblock {
   global.blockchain.block[0].previousBlockHash = "0" ;
@@ -58,8 +59,8 @@ constants {
                     global.blockchain.block[0].n+
                     global.blockchain.block[0].time+
                     global.blockchain.block[0].avgtime+
-                    global.blockchain.block[0].difficulty)(response);
-  global.blockchain.block[0].hash=response;
+                    global.blockchain.block[0].difficulty)(md5Response);
+  global.blockchain.block[0].hash=md5Response;
   global.blockchain.block[0].transactionnumber = 1 ;
   global.blockchain.block[0].transaction.txid = "random string?" ;
   global.blockchain.block[0].transaction.size = 1 ;
@@ -70,8 +71,8 @@ constants {
   global.blockchain.block[0].transaction.vout.coinbase = "whatever, not used" ;
   //TO DO:global.blockchain.block[0].transaction.vout.signature=applySignature@embedd()()
   //TO DO:add pow
-  getCurrentTimeMillis @Time()(global.blockchain.block[0].time);
-  md5 @MessageDigest("Insert Header")(global.blockchain.block[0].hash)
+  getCurrentTimeMillis@Time()(global.blockchain.block[0].time);
+  md5@MessageDigest("Insert Header")(global.blockchain.block[0].hash)
 }
 
 /*
@@ -119,8 +120,8 @@ constants {
        powReq.exponent=block.powchain[i]-1;
        pow@Math(powReq)(response);
        m=response%block.powchain[i];
-       if (m==1){pseudoprime=true} else {pseudoprime=false}
-     } else {pseudoprime=false} //can't compute over 68
+       if (m==1){powVerificationResponse=true} else {powVerificationResponse=false}
+     } else {powVerificationResponse=false} //can't compute over 68
 
    };
    println@Console( "PoW verification finished" )()
@@ -134,9 +135,9 @@ define findpeer {
  undef(tavola.node[0].privateKey);
  println@Console( "Send Peer Discovery request" )();
  for ( i=0, i<#global.peertable.node, i++ ) {
-   OutputBroadcastPort.location="socket://localhost:800"+i;
-   PeerDiscovery@OutputBroadcastPort(tavola)(response);
-    global.peertable << response
+   OutputBroadcastPort.location=ROOT+i;
+   PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
+    global.peertable << PeerDiscoveryResponse
  };
  println@Console( "Peer finding finished" )()
 }
@@ -145,11 +146,12 @@ define findpeer {
  define getnetworkaveragetime {
  println@Console( "Get Network Average Time" )();
  for ( i=0, i<#global.peertable.node, i++ ) {
-   TimeBroadcast @OutputBroadcastPort()(response); //undef global.avgtime after use
+   OutputBroadcastPort.location=ROOT+i;
+   TimeBroadcast @OutputBroadcastPort()(TimeBroadcastResponse); //undef global.avgtime after use
    if (is_defined(global.avgtime)) {
-    global.avgtime = (global.avgtime + response) / 2
+    global.avgtime = (global.avgtime + TimeBroadcastResponse) / 2
    } else {
-    global.avgtime = response
+    global.avgtime = TimeBroadcastResponse
   }
 };
  println@Console( "Network Average Time finished" )()
@@ -161,7 +163,7 @@ init {
   println@Console( "Start node init" )();
   //TO DO:Per ora utilizziamo un handler degli errori generico, in seguito sarebbe utilie essere più specifici per favorire il debug
   install(TypeMismatch => println @Console("TypeMismatch: " + main.TypeMismatch)()) ;
-  global.status.myID = 1 ;
+  global.status.myID = ID ;
   global.status.myLocation = InPort.location ;
   global.status.createGenesisBlock = CREATEGENESISBLOCK;
   println@Console( "Get current time" )();
@@ -181,7 +183,7 @@ init {
    findpeer;
    println@Console( "Send blockchain sync request" )();
    for ( i=0, i<#global.peertable.node, i++ ) {
-     OutputBroadcastPort.location="socket://localhost:800"+i;
+     OutputBroadcastPort.location=ROOT+i;
      BlockchainSync@OutputBroadcastPort()(BlockchainSyncResponse);
      //TO DO: OPTIONAL add validation
      global.blockchain << BlockchainSyncResponse
@@ -189,7 +191,7 @@ init {
  };
   //Creo una coda per conservare le transazioni da processare
   println@Console( "Creating Transaction Queque" )();
-  new_queue@QueueUtils("transactionqueque" + global.status.myID)(response); //response=bool
+  new_queue@QueueUtils("transactionqueque" + global.status.myID)(QueueUtilsResponse); //response=bool
   println@Console( "Node init finished" )()
 }
 
@@ -217,8 +219,8 @@ main {
      }
    };
       println@Console( "Creating transaction id" )();
-      md5@MessageDigest("Secure random instance")(response);
-      transaction.txid=response|
+      md5@MessageDigest("Secure random instance")(md5Response);
+      transaction.txid=md5Response|
       //.size=
       // the idea is: find the most recent unspent tx where the total amount add at least to the output
       //So:  check if spent, check if value summs up
@@ -243,23 +245,25 @@ main {
       };
       //.vout[0].signature=
     //Una volta creata la transazione devo inviarla in broadcast per permettere agli altri nodi di inserirla nei loro blocchi
-    //TO DO: remove response
+    //TO DO: OPTIONAL but higly suggested remove response
     println@Console( "Send Transaction to TransactionBroadcast" )();
     DemoTXResponse=true; //should be DemoTX response, TO DO: change naming
     for ( i=0, i<#global.peertable.node, i++ ) {
-      OutputBroadcastPort.location="socket://localhost:800"+i;
-      TransactionBroadcast@OutputBroadcastPort(transaction)(response)
+      OutputBroadcastPort.location=ROOT+i;
+      TransactionBroadcast@OutputBroadcastPort(transaction)(TransactionBroadcastResponse)
     }|
+    push@QueueUtils(transaction)(QueueUtilsResponse);
+
     //Quando ho una transazione devo creare un blocco
-    //TO DO: aggiungere alla coda delle transazioni
+    //TO DO: Refactor, SEPARATE transaction PROCESSING
     println@Console( "Send md5 hash request - Previous block hash" )();
-    md5@MessageDigest(#global.blockchain.block-1)(response);
-    block.previousBlockHash=response|
+    md5@MessageDigest(#global.blockchain.block-1)(md5Response);
+    block.previousBlockHash=md5Response|
     block.version="1" |
     block.size=1 ;
-    //TO DO: change, find n with previous block hash
+    //TO DO: change, find n with previous block hash "while (previousBlockHash=global.blockchain.block.hash)"
     block.n=#global.blockchain.block |
-    block.difficulty=2; //costante per ora, in futuro basarsi su target quando implementeremo la POW
+    block.difficulty=2; //costante per ora, TO DO:in futuro basarsi su target quando implementeremo la POW
     getCurrentTimeMillis@Time()(millis);
     block.time=millis|
     getnetworkaveragetime;
@@ -273,14 +277,14 @@ main {
                       block.n+
                       block.time+
                       block.avgtime+
-                      block.difficulty)(response);
-    block.hash=response;
+                      block.difficulty)(md5Response);
+    block.hash=md5Response;
     block.transaction[0]=transaction;
     //coinbase
     //TO DO: define coinbase tx as a constant?
     //define coinbase as a global var (type transaction)?
-    md5@MessageDigest("Secure random intance1")(response);
-    block.transaction[1].txid=response;
+    md5@MessageDigest("Secure random intance1")(md5Response);
+    block.transaction[1].txid=md5Response;
     block.transaction[1].vout[0].coinbase="Mining like a dwarf";
     block.transaction[1].vout[0].value=600000000;
     block.transaction[1].vout[0].pk=global.peertable.node[0].publicKey;
@@ -292,24 +296,23 @@ main {
   global.blockchain.block[#global.blockchain.block]=block;
   println@Console( "Send Block to BlockBroadcast" )();
   for ( i=0, i<#global.peertable.node, i++ ) {
-    OutputBroadcastPort.location="socket://localhost:800"+i;
-    BlockBroadcast@OutputBroadcastPort(block)(response)
+    OutputBroadcastPort.location=ROOT+i;
+    BlockBroadcast@OutputBroadcastPort(block)(BlockBroadcastResponse)
   };
   //TO DO: clarify this=> response= location + prevhash array
   println@Console( "Send BlockchainSync request to broadcast" )();
   for ( i=0, i<#global.peertable.node, i++ ) {
-    OutputBroadcastPort.location="socket://localhost:800"+i;
-    BlockchainSync@OutputBroadcastPort(global.blockchain)(response)
+    OutputBroadcastPort.location=ROOT+i;
+    BlockchainSync@OutputBroadcastPort(global.blockchain)(BlockchainSyncResponse)
   }
  }]
 
 
  //Se ricevo una richiesta si peerdicovery invio la mia peertable e la aggiorno con eventuali nuovi nodi
- [PeerDiscovery(peertableother)(response) {
+ [PeerDiscovery(peertableother)(PeerDiscoveryResponse) {
  println@Console( "Answering PeerDiscovery" )();
- response=global.peertable;
+ PeerDiscoveryResponse=global.peertable;
  global.peertable << peertableother;
- response=true;
  println@Console( "Answering PeerDiscovery finished" )()
  }]
 
@@ -327,42 +330,43 @@ main {
 
 
  //Se ricevo una richiesta si BlockchainSync invio la mia blockchain in modo che il mittente riceva la blockchain
- [BlockchainSync()(response){
+ [BlockchainSync()(BlockchainSyncResponse){
    println@Console( "Answering BlockchainSync" )();
-   response=global.blockchain;
+   BlockchainSyncResponse=global.blockchain;
    println@Console( "Block verification finished" )()
    }]
 
 
  //Se ricevo una transazione ne attesto la validità e se opportuno la inserisco nella mia coda delle transazioni da processare
- [TransactionBroadcast(transaction)(response) {
+ [TransactionBroadcast(transaction)(TransactionBroadcastResponse) {
    println@Console( "Answering TransactionBroadcast" )();
-  if (transaction instanceof transaction) //TO DO: transaction is valid?
+  if (transaction instanceof transaction) //TO DO: is transaction  valid?
    QueueReq.queue_name = "transactionqueque" + global.status.myID |
    QueueReq.element = transaction;
-   push @QueueUtils(QueueReq)(response);
+   push@QueueUtils(QueueReq)(QueueUtilsResponse);
   //START POW? only if not currently running
-  println@Console( "Answering TransactionBroadcast finished" )()
+  println@Console( "Answering TransactionBroadcast finished" )();
+  TransactionBroadcastResponse=QueueUtilsResponse
 }]
 
 
 //Se ricevo una richiesta di NetworkVisualizer invio i dati richiesti
 //TO DO: finish data structure
- [NetworkVisualizer()(response) {
+ [NetworkVisualizer()(NetworkVisualizerResponse) {
   println@Console( "Answering NetworkVisualizer" )();
-  response.ID = global.status.myID;
-  response.pk=global.peertable.node[0].publicKey;
-  response.blockchain=global.blockchain;
-  response.blockchainn=#global.blockchain;
+  NetworkVisualizerResponse.ID = global.status.myID;
+  NetworkVisualizerResponse.pk=global.peertable.node[0].publicKey;
+  NetworkVisualizerResponse.blockchain=global.blockchain;
+  NetworkVisualizerResponse.blockchainn=#global.blockchain;
   println@Console( "Answering NetworkVisualizer finished" )()
 }]
 
 
  //Se ricevo una richiesta di TimeBroadcast invio il mio segnale orario in modo che il mittente possa calcolare il network average time
- [TimeBroadcast()(response) {
+ [TimeBroadcast()(TimeBroadcastResponse) {
   println@Console( "Answering TimeBroadcast" )();
   getCurrentTimeMillis @Time()(millis);
-  response = millis;
+  TimeBroadcastResponse = millis;
   println@Console( "Answering TimeBroadcast finished" )()
 }]
 
