@@ -35,7 +35,7 @@ inputPort InPort {
 //Mandatory!
 execution {concurrent}
 
-//TO DO: test rewrited procedures as internal services (nested internal calls, ecc)
+//TO DO: test, refactor & test
 
  define creategenesisblock {
   global.blockchain.block[0].previousBlockHash = "0" ;
@@ -121,6 +121,21 @@ execution {concurrent}
   }
   }
 
+  interface powGenerationInterface {
+   RequestResponse: powVerification(block)(long)//array
+  }
+  service powInternalGeneration {
+  Interfaces: powVerificationInterface
+  main {
+   [powGeneration(currentblock)(powGenerationResponse){
+     println@Console( "Starting PoW generation" )();
+     //TO DO: add pow generation
+     powGenerationResponse=1;
+     println@Console( "PoW generation finished" )()
+   }]
+  }
+  }
+
 define findpeer {
  println@Console( "Starting peer finding" )();
  tavola << global.peertable;
@@ -172,9 +187,9 @@ init {
   global.status.myLocation = InPort.location ;
   global.status.createGenesisBlock = CREATEGENESISBLOCK;
   println@Console( "Get current time" )();
-  getCurrentTimeMillis@Time()(millis);
-  global.status.startUpTime = millis;
-  println@Console( millis )();
+  getCurrentTimeMillis@Time()(getCurrentTimeMillisResponse);
+  global.status.startUpTime = getCurrentTimeMillisResponse;
+  println@Console( getCurrentTimeMillisResponse)();
   //TO DO: generatekeypair!!!
   //global.status.myPublicKey
   //global.status.myPrivateKey
@@ -293,7 +308,7 @@ main {
     block.transaction[1].vout[0].pk=global.peertable.node[0].publicKey;
     //block.transaction[1].vout.signature
 
-   //TO DO: PoW
+   //powGeneration@powInternalGeneration(block)(powGenerationResponse);
 
   //TO DO: change this, use previous block hash to navigate blockchain
   global.blockchain.block[#global.blockchain.block]=block;
