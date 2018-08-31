@@ -129,18 +129,23 @@ constants {
   }
   }
 
-define findpeer {
- println@Console( "Starting peer finding" )();
- tavola << global.peertable;
- undef(tavola.node[0].privateKey);
- println@Console( "Send Peer Discovery request" )();
- for ( i=0, i<#global.peertable.node, i++ ) {
-   OutputBroadcastPort.location=ROOT+i;
-   PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
-    global.peertable << PeerDiscoveryResponse
- };
- println@Console( "Peer finding finished" )()
-}
+  define findpeer {
+   println@Console( "Starting peer finding" )();
+   tavola << global.peertable;
+   undef(tavola.node[0].privateKey);
+   println@Console( "Send Peer Discovery request" )();
+   if (#global.peertable<=1){
+     OutputBroadcastPort.location=ROOT+"1";
+     PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
+      global.peertable << PeerDiscoveryResponse
+   }else {
+   for ( i=0, i<#global.peertable.node, i++ ) {
+     OutputBroadcastPort.location=ROOT+i;
+     PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
+      global.peertable << PeerDiscoveryResponse
+   }};
+   println@Console( "Peer finding finished" )()
+  }
 
 
  define getnetworkaveragetime {

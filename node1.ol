@@ -134,11 +134,16 @@ define findpeer {
  tavola << global.peertable;
  undef(tavola.node[0].privateKey);
  println@Console( "Send Peer Discovery request" )();
+ if (#global.peertable<=1){
+   OutputBroadcastPort.location=ROOT+"1";
+   PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
+    global.peertable << PeerDiscoveryResponse
+ }else {
  for ( i=0, i<#global.peertable.node, i++ ) {
    OutputBroadcastPort.location=ROOT+i;
    PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
     global.peertable << PeerDiscoveryResponse
- };
+ }};
  println@Console( "Peer finding finished" )()
 }
 
@@ -161,7 +166,7 @@ define findpeer {
 //Inizializzo lo stato del nodo
 init {
   println@Console( "Start node init" )();
-  //TO DO:Per ora utilizziamo un handler degli errori generico, in seguito sarebbe utilie essere più specifici per favorire il debug
+  //TO DO:Add specific handler
   install(TypeMismatch => println @Console("TypeMismatch: " + main.TypeMismatch)()) ;
   global.status.myID = ID ;
   global.status.myLocation = InPort.location ;
@@ -198,7 +203,6 @@ init {
 
 
 main {
-  //parametrize code,
   [DemoTx(TxValue)(DemoTXResponse) {
     println@Console( "Answering DemoTx" )();
    onetime=false; // a cosa serve questo parametro? triggerare solo una volta il findpeer!
