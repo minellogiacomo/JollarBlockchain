@@ -1,4 +1,3 @@
-
 //TO DO: remove unused import
 include "console.iol" //console
 include "message_digest.iol" //md5
@@ -35,8 +34,6 @@ inputPort InPort {
 
 //Mandatory!
 execution {concurrent}
-
-
 
 //TO DO: test rewrited procedures as internal services (nested internal calls, ecc)
 
