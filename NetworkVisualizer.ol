@@ -16,7 +16,7 @@ inputPort InPort {
  Interfaces: DemoTxInterface //more to come
 }
 
-//execution {concurrent} is this necessary? Adesso potrebbe funzionare ma viene comunque chiamato una sola volta
+execution {concurrent}
 
 main{
 [DemoTx(TxValue)(response){

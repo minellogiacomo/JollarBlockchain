@@ -1,7 +1,7 @@
 constants {
   ROOT="socket://localhost:900",
   CREATEGENESISBLOCK = false,
-  ID=2,
-  location="socket://localhost:9002"
+  ID=4,
+  location="socket://localhost:9004"
 }
 include "main.ol"

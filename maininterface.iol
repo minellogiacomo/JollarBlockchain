@@ -58,7 +58,7 @@ type peertable: void {
 }
 
 interface DemoTxInterface {
-  RequestResponse: DemoTx(TxValue)(bool)
+  RequestResponse: DemoTx(TxValue)(any)
 }
 
 interface BlockchainSyncInterface {
