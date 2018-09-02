@@ -3,9 +3,7 @@ include "console.iol" //console
 include "message_digest.iol" //md5
 include "math.iol" //random and pow
 include "converter.iol" //convert raw to base64
-include "network_service.iol" //getIP?
-include "queue_utils.iol" //implementazione coda
-include "scheduler.iol" //pianificare attività?
+include "queue_utils.iol" //implementazione queue
 include "security_utils.iol" //secureRandom and createSecureToken
 include "string_utils.iol" //string operations (id, hash)
 include "time.iol" //getCurrentTimeMillis
@@ -108,13 +106,11 @@ execution {concurrent}
   main {
    [powGeneration(currentblock)(powGenerationResponse){
      println@Console( "Starting PoW generation" )();
-     //TO DO: add pow generation
+     //https://github.com/stubbscroll/CUNNINGHAM provare a vedere anche questo
      seed=2;
      /*
+     //Output : 2 5 11 23 47
      int p1, i = 0, x, flag, k;
-
-    // Iterate till all
-    // elements are printed
     while (true)
     {
         flag = 1;
@@ -134,8 +130,8 @@ execution {concurrent}
             break;
         System.out.print(" " + p1);
         i++;
-    }
-}
+         }
+         }
      */
      powGenerationResponse=1;
      println@Console( "PoW generation finished" )()
@@ -171,12 +167,12 @@ execution {concurrent}
   }
   }
 
-interface getNetworkAverageTimeInterface {
+  interface getNetworkAverageTimeInterface {
  RequestResponse: getNetworkAverageTime(void)(long)
-}
-service getInternalNetworkAverageTime {
-Interfaces: getNetworkAverageTimeInterface
-main {
+  }
+  service getInternalNetworkAverageTime {
+  Interfaces: getNetworkAverageTimeInterface
+  main {
  [getNetworkAverageTime()(getNetworkAverageTimeResponse){
    println@Console( "Get Network Average Time" )();
    for ( i=1, i<#global.peertable.node, i++ ) {
@@ -191,15 +187,16 @@ main {
   };
    println@Console( "Network Average Time finished" )()
  }]
-}
-}
+  }
+  }
 
- define creategenesisblock {
+define creategenesisblock {
   global.blockchain.block[0].previousBlockHash = "0" ;
   global.blockchain.block[0].version="1";
   global.blockchain.block[0].size = 1 ;
   global.blockchain.block[0].n = 0 ;
-  //global.blockchain.block[0].avgtime=
+  getCurrentTimeMillis@Time()(global.blockchain.block[0].time);
+  global.blockchain.block[0].avgtime=global.blockchain.block[0].time;
   global.blockchain.block[0].difficulty = 1 ;
   println@Console( "Send md5 hash request" )();
   md5@MessageDigest(global.blockchain.block[0].previousBlockHash+
@@ -220,9 +217,9 @@ main {
   global.blockchain.block[0].transaction.vout.coinbase = "whatever, not used" ;
   powGeneration@powInternalGeneration(global.blockchain.block[0])(powGenerationResponse);
   global.blockchain.block[0].pow=powGenerationResponse;
-  getCurrentTimeMillis@Time()(global.blockchain.block[0].time);
   md5@MessageDigest("Insert Header")(global.blockchain.block[0].hash)
-}
+  }
+
 
 //Inizializzo lo stato del nodo
 init {
@@ -262,7 +259,6 @@ init {
 }
 
 
-
 main {
   [DemoTx(TxValue)(DemoTXResponse) {
     println@Console( "Answering DemoTx" )();
@@ -270,7 +266,7 @@ main {
    println@Console( "Find destination id" )();
    for ( i = 0, i < #global.peertable.node, i++  ){
      if (global.peertable.node[i].location==TxValue.location){
-       println@Console( "destination id found" )();
+       println@Console( "Destination id found" )();
        TxValue.publicKey=global.peertable.node[i].publicKey //Error?
      } else{
       if (onetime=false){
@@ -280,7 +276,7 @@ main {
       i=0
       } else {
         println@Console( "Can't find destination id" )();
-        response=false
+        DemoTXResponse=false
       }
      }
    };
@@ -317,7 +313,7 @@ main {
     for ( i=1, i<#global.peertable.node, i++ ) {
       OutputBroadcastPort.location=ROOT+i;
       TransactionBroadcast@OutputBroadcastPort(transaction)(TransactionBroadcastResponse)
-    }|
+    };
 
     //Quando ho una transazione devo creare un blocco
     //TO DO: Refactor, SEPARATE transaction PROCESSING
@@ -345,7 +341,6 @@ main {
     block.hash=md5Response;
     block.transaction[0]=transaction;
     //coinbase
-    //define coinbase as a global var (type transaction)?
     md5@MessageDigest("Secure random intance1")(md5Response);
     block.transaction[1].txid=md5Response;
     block.transaction[1].vout[0].coinbase="Mining like a dwarf";
@@ -370,15 +365,13 @@ main {
    println@Console( "DemoTX end" )()
   }]
 
-
  //Se ricevo una richiesta di peerdicovery invio la mia peertable e la aggiorno con eventuali nuovi nodi
  [PeerDiscovery(peertableother)(PeerDiscoveryResponse) {
- println@Console( "Answering PeerDiscovery" )();
- PeerDiscoveryResponse=global.peertable;
- global.peertable << peertableother;
- println@Console( "Answering PeerDiscovery finished" )()
+   println@Console( "Answering PeerDiscovery" )();
+   PeerDiscoveryResponse=global.peertable;
+   global.peertable << peertableother;
+   println@Console( "Answering PeerDiscovery finished" )()
  }]
-
 
  //Se ricevo un blocco ne attesto la validità e se opportuno la inserisco nella mia blockchain
  [BlockBroadcast(currentblock)(blockBroadcastResponse) {
@@ -392,14 +385,12 @@ main {
    println@Console( "Answering BlockBroadcast finished" )()
  }]
 
-
  //Se ricevo una richiesta si BlockchainSync invio la mia blockchain in modo che il mittente riceva la blockchain
  [BlockchainSync()(BlockchainSyncResponse){
    println@Console( "Answering BlockchainSync" )();
    BlockchainSyncResponse=global.blockchain;
    println@Console( "Block verification finished" )()
-   }]
-
+ }]
 
  //Se ricevo una transazione ne attesto la validità e se opportuno la inserisco nella mia coda delle transazioni da processare
  [TransactionBroadcast(currentTransaction)(TransactionBroadcastResponse) {
@@ -412,8 +403,7 @@ main {
    push@QueueUtils(QueueReq)(QueueUtilsResponse);
    TransactionBroadcastResponse=QueueUtilsResponse};
    println@Console( "Answering TransactionBroadcast finished" )()
-}]
-
+ }]
 
 //Se ricevo una richiesta di NetworkVisualizer invio i dati richiesti
 //TO DO: finish data structure
@@ -424,8 +414,7 @@ main {
   NetworkVisualizerResponse.blockchain=global.blockchain;
   NetworkVisualizerResponse.blockchainn=#global.blockchain;
   println@Console( "Answering NetworkVisualizer finished" )()
-}]
-
+ }]
 
  //Se ricevo una richiesta di TimeBroadcast invio il mio segnale orario in modo che il mittente possa calcolare il network average time
  [TimeBroadcast()(TimeBroadcastResponse) {
@@ -433,6 +422,6 @@ main {
   getCurrentTimeMillis @Time()(millis);
   TimeBroadcastResponse = millis;
   println@Console( "Answering TimeBroadcast finished" )()
-}]
+ }]
 
 }
