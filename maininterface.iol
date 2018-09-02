@@ -32,15 +32,13 @@ type block: void {
 .previousBlockHash: string
 .size: int
 .n:long
-.type:string //type of pow chain
-.merkleroot?:string //multiple tx?
+.type?:string //type of pow chain
 .time: long //avoid year2038 problem
 .avgtime: long
 .hash:string
 .difficulty: long
-//.transactionnumber: int
 .transaction: transaction
-.Pow:long //TO DO: at least and at most 1
+.pow:long //TO DO: at least and at most 1
 }
 
 type blockchain: void {
