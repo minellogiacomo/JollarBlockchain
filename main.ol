@@ -1,7 +1,6 @@
 include "console.iol" //console
 include "message_digest.iol" //md5
 include "math.iol" //random and pow
-include "converter.iol" //convert raw to base64
 include "queue_utils.iol" //implementazione queue
 include "security_utils.iol" //secureRandom and createSecureToken
 include "string_utils.iol" //string operations (id, hash)
@@ -157,7 +156,11 @@ execution {concurrent}
          }
          }
      */
-     powGenerationResponse=1;
+     powGenerationResponse[0]=2;
+     powGenerationResponse[0]=5;
+     powGenerationResponse[0]=11;
+     powGenerationResponse[0]=23;
+     powGenerationResponse[0]=47;
      println@Console( "PoW generation finished" )()
    }]
   }
@@ -238,14 +241,16 @@ execution {concurrent}
   }
 
   interface getNetworkAverageTimeInterface {
-  RequestResponse: getNetworkAverageTime(void)(long)
+  RequestResponse: getNetworkAverageTime(any)(long)
   }
   service getInternalNetworkAverageTime {
   Interfaces: getNetworkAverageTimeInterface
   main {
-   [getNetworkAverageTime()(getNetworkAverageTimeResponse){
+   [getNetworkAverageTime(status.myID)(getNetworkAverageTimeResponse){
    println@Console( "Get Network Average Time" )();
-   for ( i=1, i<#global.peertable.node, i++ ) {
+   OutputBroadcastPort.location="socket://localhost:900"+status.myID;
+   findPeer@findInternalPeer()(findPeerResponse);
+   for ( i=1, i<#findPeerResponse.node, i++ ) {
      OutputBroadcastPort.location=ROOT+i;
      TimeBroadcast@OutputBroadcastPort()(TimeBroadcastResponse);
      if (is_defined(avgtime)) {
@@ -261,21 +266,22 @@ execution {concurrent}
   }
 
   interface blockGenerationInterface {
-   OneWay: blockGeneration(void)
+   OneWay: blockGeneration(any)
   }
   service blockInternalGeneration {
   Interfaces: blockGenerationInterface
   main {
-   [blockGeneration()]{
+   [blockGeneration(status.myID)]{
      println@Console( "Starting block generation" )();
-     size@QueueUtils("transactionqueque" + global.status.myID)(QueueUtilsResponse);
+     size@QueueUtils("transactionqueque" + status.myID)(QueueUtilsResponse);
      if (QueueUtilsResponse>0){
-     poll@QueueUtils("transactionqueque" + global.status.myID)(QueueUtilsResponse);
+     poll@QueueUtils("transactionqueque" + status.myID)(QueueUtilsResponse);
      transactionVerification@transactionInternalVerification(QueueUtilsResponse)(transactionVerificationResponse);
      if (transactionVerificationResponse){
      transaction=QueueUtilsResponse;
-     block=1;
-     findLongestChain@findInternalLongestChain(global.blockchain)(findLongestChainResponse);
+     OutputBroadcastPort.location="socket://localhost:900"+status.myID;
+     BlockchainSync@OutputBroadcastPort()(BlockchainSyncResponse);
+     findLongestChain@findInternalLongestChain(BlockchainSyncResponse)(findLongestChainResponse);
      block.previousBlockHash=findLongestChainResponse.block[0].hash|
      block.version="1" |
      block.size=1 ;
@@ -283,7 +289,7 @@ execution {concurrent}
      block.difficulty=6;
      getCurrentTimeMillis@Time()(millis);
      block.time=millis|
-     getNetworkAverageTime@getInternalNetworkAverageTime()(getNetworkAverageTimeResponse);
+     getNetworkAverageTime@getInternalNetworkAverageTime(status.myID)(getNetworkAverageTimeResponse);
      block.avgtime=getNetworkAverageTimeResponse;
      println@Console( "Send md5 hash request" )();
      md5@MessageDigest(block.previousBlockHash+
@@ -298,20 +304,22 @@ execution {concurrent}
      //coinbase
      createSecureToken@SecurityUtils()(token);
      block.transaction[1].txid=token;
-     block.transaction[1].vout[0].coinbase="Mining like a dwarf";
+     createSecureToken@SecurityUtils()(token);
+     block.transaction[1].vout[0].coinbase="Mining like a dwarf "+token;
      block.transaction[1].vout[0].value=600000000; //in Jollaroshi
-     block.transaction[1].vout[0].pk=global.peertable.node[0].publicKey;
+     //TO DO: fix ask peertable
+     findPeer@findInternalPeer()(findPeerResponse);
+     block.transaction[1].vout[0].pk=findPeerResponse.node[0].publicKey;
      powGeneration@powInternalGeneration(block)(powGenerationResponse);
      block.pow=powGenerationResponse;
-     global.blockchain.block[#global.blockchain.block]=block;
      println@Console( "Send Block to BlockBroadcast" )();
-     for ( i=1, i<#global.peertable.node, i++ ) {
+     for ( i=1, i<#findPeerResponse.node, i++ ) {
       OutputBroadcastPort.location=ROOT+i;
       BlockBroadcast@OutputBroadcastPort(block)(BlockBroadcastResponse)
      }
    }
    };
-     blockGeneration@blockInternalGeneration();
+     blockGeneration@blockInternalGeneration(status.myID);
      println@Console( "Block generation finished" )()
    }
   }
@@ -335,12 +343,8 @@ define creategenesisblock {
                     global.blockchain.block[0].avgtime+
                     global.blockchain.block[0].difficulty)(md5Response);
   global.blockchain.block[0].hash=md5Response;
-  global.blockchain.block[0].transactionnumber = 1 ;
   createSecureToken@SecurityUtils()(token);
   global.blockchain.block[0].transaction.txid = token;
-  global.blockchain.block[0].transaction.size = 1 ;
-  global.blockchain.block[0].transaction.vin.n = 0 ;
-  global.blockchain.block[0].transaction.vout.n = 1 ;
   global.blockchain.block[0].transaction.vout.value = 6 ;
   global.blockchain.block[0].transaction.vout.pk = global.peertable.node[0].publicKey ;
   createSecureToken@SecurityUtils()(token);
@@ -361,11 +365,11 @@ init {
   getCurrentTimeMillis@Time()(getCurrentTimeMillisResponse);
   global.status.startUpTime = getCurrentTimeMillisResponse;
   println@Console( getCurrentTimeMillisResponse)();
-  //TO DO: generatekeypair!!!
-  //global.status.myPublicKey
-  //global.status.myPrivateKey
-  global.peertable.node[0].publicKey = "dummy public key";
-  global.peertable.node[0].privateKey = "dummy private key";
+  //TO DO: DSA
+  createSecureToken@SecurityUtils()(token);
+  global.peertable.node[0].publicKey = token;
+  createSecureToken@SecurityUtils()(token);
+  global.peertable.node[0].privateKey = token;
   global.peertable.node[0].location = global.status.myLocation ;
   if (global.status.createGenesisBlock == true) {
    println@Console( "Create Genesis block" )();
@@ -391,7 +395,7 @@ init {
   //Creo una coda per conservare le transazioni da processare
   println@Console( "Creating Transaction Queque" )();
   new_queue@QueueUtils("transactionqueque" + global.status.myID)(QueueUtilsResponse); //response=bool
-  blockGeneration@blockInternalGeneration();
+  blockGeneration@blockInternalGeneration(global.status.myID);
   println@Console( "Node init finished" )()
 }
 
@@ -464,7 +468,6 @@ main {
      println@Console( "Send BlockchainSync request to broadcast" )();
      for ( i=1, i<#global.peertable.node, i++ ) {
      OutputBroadcastPort.location=ROOT+i;
-     //to do: correggere
      BlockchainSync@OutputBroadcastPort()(BlockchainSyncResponse)
      }
      */

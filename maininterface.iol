@@ -15,14 +15,14 @@ type TxValue: void {
 
 //UXTO (unspent transaction)
 type TxIn: void {
-  .txid: string
-  .index: int
+  .txid?: string
+  .index?: int
   .signature?:string //first half of signature
 }
 
 type transaction: void {
   .txid: string
-  .vin : TxIn
+  .vin?: TxIn
   .vout: TxOut
 }
 
@@ -38,7 +38,7 @@ type block: void {
 .hash:string
 .difficulty: long
 .transaction: transaction
-.pow:long //TO DO: at least and at most 1
+.pow?:long //TO DO: at least and at most 1
 }
 
 type blockchain: void {
@@ -80,5 +80,5 @@ interface NetworkVisualizerInterface {
 }
 
 interface PeerDiscoveryInterface {
-  RequestResponse: PeerDiscovery(peertable)(peertable) //or use an array of nodes?
+  RequestResponse: PeerDiscovery(peertable)(peertable) 
 }

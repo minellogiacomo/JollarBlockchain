@@ -1,0 +1,75 @@
+\usepackage{bold-extra}
+
+\newcommand{\Jolie}{Jolie}
+\newcommand{\Definition}{\noindent\textbf{\emph{Definition}}}
+\newcommand{\Implementation}{\noindent\textbf{\emph{Implementation}}}
+\newcommand{\Section}{\S}
+
+\newcommand{\citeNeed}{{\color{red}[CitNeed]}}
+
+\definecolor{color:keyword}{rgb}{0.53,0.05,0.05}
+\definecolor{color:comment}{rgb}{0.25,0.37,0.75}
+\definecolor{color:string}{rgb}{0.87,0.0,0.0}
+
+\lstdefinelanguage{Jolie}{
+    morekeywords={csets,type,raw,any,undefined,void,default,if,for,while,spawn,foreach,else,define,main,include,constants,inputPort,outputPort,interface,execution,cset,nullProcess,RequestResponse,OneWay,throw,throws,install,scope,embedded,init,synchronized,global,is_defined,is_int,is_bool,is_long,is_string,bool,long,int,string,double,undef,with,Location,Protocol,Interfaces,Aggregates,Redirects,linkIn,linkOut},
+    sensitive=true,
+    morecomment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    morestring=[b]",
+    otherkeywords={;,|,@}
+}
+
+\lstset{
+    language=Jolie,
+    mathescape=true,
+    resetmargins=true,
+    numberstyle=\footnotesize,
+    numbers=none,
+    numbersep=5pt,
+    numberblanklines=true,
+    basicstyle=\ttfamily\small,
+    tabsize=2,
+    %frame=lines,
+    commentstyle=\rmfamily\color{color:comment},
+    stringstyle=\color{color:string},
+    captionpos=b,
+    keywordstyle=\bfseries\color{color:keyword},
+    showstringspaces=false,
+    belowcaptionskip=10mm,
+    breaklines=false,
+    columns=fullflexible,
+    linewidth= 0.8\linewidth
+}
+
+\newcommand{\code}[1]{\lstinline{#1}{}}
+
+\newcommand{\setUmlSeqChartStyle}{
+    \tikzset{inststyle/.style={
+    rectangle, draw, 
+    anchor=west, 
+    minimum height=0.8cm, 
+    minimum width=1.6cm, 
+    fill=white
+    %drop shadow={opacity=0,fill=black}]
+    }
+  }
+}
+
+\renewcommand{\mess}[4][0]{
+  \stepcounter{seqlevel}
+  \path
+  (#2)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (mess from) {};
+  \addtocounter{seqlevel}{#1}
+  \path
+  (#4)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (mess to) {};
+  \draw[->,>=angle 60] (mess from) -- (mess to)% 
+    node[midway, above, align=center, text width=3cm]
+    {\footnotesize #3};
+
+  \node (#3 from) at (mess from) {};
+  \node (#3 to) at (mess to) {};
+}
+
+\crefname{figure}{Fig.}{Figs.}
+\crefname{lstlisting}{Listing}{Listings}

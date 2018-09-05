@@ -11,7 +11,7 @@ outputPort NetworkPort { //broadcast
 }
 
 inputPort InPort {
- Location: "socket://localhost:9001"
+ Location: "socket://localhost:9000"
  Protocol: http
  Interfaces: DemoTxInterface //more to come
 }
