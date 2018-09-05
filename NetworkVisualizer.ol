@@ -19,13 +19,13 @@ inputPort InPort {
 execution {concurrent}
 
 main{
-[DemoTx(TxValue)(response){
+[DemoTx(TxValue)(DemoTxResponse){
 println@Console( "Sending Network Visualizer request to broadcast" )();
-NetworkVisualizer@NetworkPort()(r);
+NetworkVisualizer@NetworkPort()(NetworkVisualizerResponse);
 println@Console( "Get current time" )();
 getCurrentTimeMillis @Time()(millis);
 println@Console(millis)();
-println@Console(r)();
-response = true
+println@Console(NetworkVisualizerResponse)();
+DemoTxResponse= true
 }]
 }

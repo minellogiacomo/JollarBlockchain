@@ -2,14 +2,14 @@
 //TO DO: rename subnodes to match code style
 
 type TxOut: void {
-  .value: long //in Jollaroshi 1J=100,000,000 Jollaroshi
+  .value: long //in Jollaroshi 1Jollar=100,000,000 Jollaroshi
   .pk: string
-  .coinbase:string
-  .signature: string //TO DO: add (this is second half)
+  .coinbase?:string
+  .signature?: string //TO DO: add (this is second half)
 }
 
 type TxValue: void {
-  .value: long //in Jollaroshi 1J=100,000,000 Jollaroshi
+  .value: long //in Jollaroshi 1Jollar=100,000,000 Jollaroshi
   .location: string
 }
 
@@ -17,18 +17,18 @@ type TxValue: void {
 type TxIn: void {
   .txid: string
   .index: int
-  .signature:string //TO DO: add (this is first half)
+  .signature?:string //first half of signature
 }
 
 type transaction: void {
   .txid: string
-  //.size: int
   .vin : TxIn
   .vout: TxOut
 }
 
 type block: void {
 .version: string //future proof
+.previousBlockId?: string
 .previousBlockHash: string
 .size: int
 .n:long
@@ -60,7 +60,7 @@ interface DemoTxInterface {
 }
 
 interface BlockchainSyncInterface {
-  RequestResponse: BlockchainSync(void)(blockchain)//bool or block n. & location?
+  RequestResponse: BlockchainSync(void)(blockchain)
 }
 
 interface BlockBroadcastInterface {
