@@ -1,19 +1,30 @@
-//TO DO: remove unused import
 include "console.iol"
-include "scheduler.iol" //pianificare attività?
 include "time.iol" //getCurrentTimeMillis
 include "maininterface.iol"
 
-outputPort NetworkPort { //broadcast
-	Location: "socket://localhost:9000"
+constants {
+  ROOT="socket://localhost:900",
+  CREATEGENESISBLOCK = false,
+  ID="0",
+  LOCATION="socket://localhost:9000"
+}
+
+outputPort NetworkPort {
 	Protocol: http
   Interfaces: NetworkVisualizerInterface
 }
 
 inputPort InPort {
- Location: "socket://localhost:9000"
+ Location: LOCATION
  Protocol: http
  Interfaces: DemoTxInterface //more to come
+}
+
+constants {
+  ROOT="socket://localhost:900",
+  CREATEGENESISBLOCK = false,
+  ID="0",
+  LOCATION="socket://localhost:9000"
 }
 
 execution {concurrent}
@@ -21,7 +32,11 @@ execution {concurrent}
 main{
 [DemoTx(TxValue)(DemoTxResponse){
 println@Console( "Sending Network Visualizer request to broadcast" )();
-NetworkVisualizer@NetworkPort()(NetworkVisualizerResponse);
+for ( i=1, i<5, i++ ) {
+	NetworkPort.location=ROOT+i;
+	NetworkVisualizer@NetworkPort()(NetworkVisualizerResponse);
+	println@Console( NetworkVisualizerResponse )()
+};
 println@Console( "Get current time" )();
 getCurrentTimeMillis @Time()(millis);
 println@Console(millis)();

@@ -38,21 +38,21 @@ type block: void {
 .hash:string
 .difficulty: long
 .transaction: transaction
-.pow?:long //TO DO: at least and at most 1
+.pow?: long 
 }
 
 type blockchain: void {
   .block*: block
 }
 
-type Node: void {
-  .publicKey: string
-  .privateKey?: string
-  .location: string
+type node: void {
+  .publicKey[1,1]: string
+  .privateKey[0,1]: string
+  .location[1,*]: string
 }
 
 type peertable: void {
-  .Node: string
+  .node[0,*]: node
 }
 
 interface DemoTxInterface {
@@ -80,5 +80,5 @@ interface NetworkVisualizerInterface {
 }
 
 interface PeerDiscoveryInterface {
-  RequestResponse: PeerDiscovery(peertable)(peertable) 
+  RequestResponse: PeerDiscovery(peertable)(peertable)
 }

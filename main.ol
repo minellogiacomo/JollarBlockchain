@@ -3,7 +3,6 @@ include "message_digest.iol" //md5
 include "math.iol" //random and pow
 include "queue_utils.iol" //implementazione queue
 include "security_utils.iol" //secureRandom and createSecureToken
-include "string_utils.iol" //string operations (id, hash)
 include "time.iol" //getCurrentTimeMillis
 include "maininterface.iol"
 
@@ -17,7 +16,7 @@ outputPort OutputBroadcastPort {
 }
 
 inputPort InPort {
- Location: location
+ Location: LOCATION
  Protocol: http
  Interfaces: DemoTxInterface,
  NetworkVisualizerInterface,
@@ -108,11 +107,13 @@ execution {concurrent}
   main {
    [blockVerification(currentblock)(blockVerificationResponse){
    println@Console( "Starting block verification" )();
-   transactionVerification@transactionInternalVerification(currentblock.transaction[0])(transactionVerificationResponse);
+   transactionVerification@transactionInternalVerification(currentblock.transaction[0])(transactionVerificationResponse0);
+   transactionVerification@transactionInternalVerification(currentblock.transaction[1])(transactionVerificationResponse1);
    powVerification@powInternalVerification(currentblock)(powVerificationResponse);
    if ((currentblock instanceof block)&&
       (block.n >= 0)&&
-      transactionVerificationResponse &&
+      transactionVerificationResponse0 &&
+      transactionVerificationResponse1 &&
       powVerificationResponse){ //TO DO: add more conditions
       blockVerificationResponse=true
    };
@@ -122,7 +123,7 @@ execution {concurrent}
   }
 
   interface powGenerationInterface {
-   RequestResponse: powGeneration(block)(long)//array
+   RequestResponse: powGeneration(block)(long)
   }
   service powInternalGeneration {
   Interfaces: powGenerationInterface
@@ -157,10 +158,10 @@ execution {concurrent}
          }
      */
      powGenerationResponse[0]=2;
-     powGenerationResponse[0]=5;
-     powGenerationResponse[0]=11;
-     powGenerationResponse[0]=23;
-     powGenerationResponse[0]=47;
+     powGenerationResponse[1]=5;
+     powGenerationResponse[2]=11;
+     powGenerationResponse[3]=23;
+     powGenerationResponse[4]=47;
      println@Console( "PoW generation finished" )()
    }]
   }
@@ -168,7 +169,7 @@ execution {concurrent}
 
 
   interface findPeerInterface {
-   RequestResponse: findPeer(peertable)(peertable)//array
+   RequestResponse: findPeer(peertable)(peertable)
   }
   service findInternalPeer {
   Interfaces: findPeerInterface
@@ -234,7 +235,6 @@ execution {concurrent}
   main {
    [findUnspentTx(blockchain)(findUnspentTxResponse){
      println@Console( "Starting UnspentTx finding" )();
-
      println@Console( "UnspentTx finding finished" )()
    }]
   }
@@ -359,7 +359,7 @@ init {
   println@Console( "Start node init" )();
   install(TypeMismatch => println @Console("TypeMismatch: " + main.TypeMismatch)()) ;
   global.status.myID = ID ;
-  global.status.myLocation = InPort.location ;
+  global.status.myLocation = LOCATION ;
   global.status.createGenesisBlock = CREATEGENESISBLOCK;
   println@Console( "Get current time" )();
   getCurrentTimeMillis@Time()(getCurrentTimeMillisResponse);
@@ -430,14 +430,8 @@ main {
       sum=0;
       findLongestChain@findInternalLongestChain(global.blockchain)(findLongestChainResponse);
       longestchain=findLongestChainResponse;
-      findUnspentTx@findInternalUnspentTx(longestchain)(findUnspentTxResponse);//come faccio a recuperare l'index?
-      while(TxValue.value-sum>0) {
-       sum=sum+longestchain.block[i].transaction.vout[j].value;
-       transaction.vin[#transaction.vin].txid=longestchain.block[i].transaction.txid;
-       transaction.vin[#transaction.vin].index=j
-     };
+      //findUnspentTx@findInternalUnspentTx(longestchain)(findUnspentTxResponse);//come faccio a recuperare l'index?
 
-    /*
       for( i=0, i=#longestchain.block, i++ ) {
         for( j = #longestchain.block[i].transaction.vout-1, i=0, i-- ) {
         if(TxValue.value-sum>0) {
@@ -446,7 +440,7 @@ main {
           transaction.vin[#transaction.vin].index=j
         }
        }
-       };*/
+       };
 
       println@Console( "Define transaction output" )();
       transaction.vout[#transaction.vout].value=TxValue.value|
@@ -460,9 +454,10 @@ main {
     println@Console( "Send Transaction to TransactionBroadcast" )();
     for ( i=1, i<#global.peertable.node, i++ ) {
       OutputBroadcastPort.location=ROOT+i;
-      TransactionBroadcast@OutputBroadcastPort(transaction)(TransactionBroadcastResponse)
+      TransactionBroadcast@OutputBroadcastPort(transaction)(TransactionBroadcastResponse);
+      println@Console( TransactionBroadcastResponse )()
     };
-    DemoTXResponse=true
+    DemoTXResponse=TransactionBroadcastResponse
     };
      /*
      println@Console( "Send BlockchainSync request to broadcast" )();
@@ -521,7 +516,7 @@ main {
   NetworkVisualizerResponse.ID = global.status.myID;
   NetworkVisualizerResponse.pk=global.peertable.node[0].publicKey;
   NetworkVisualizerResponse.blockchain=global.blockchain;
-  NetworkVisualizerResponse.blockchainn=#global.blockchain;
+  NetworkVisualizerResponse.blockchainLenght=#global.blockchain;
   println@Console( "Answering NetworkVisualizer finished" )()
  }]
 
