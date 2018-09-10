@@ -272,8 +272,10 @@ execution {concurrent}
   Interfaces: blockGenerationInterface
   main {
    [blockGeneration(status.myID)]{
+     sleep@Time( 2000)();
      println@Console( "Starting block generation" )();
      size@QueueUtils("transactionqueque" + status.myID)(QueueUtilsResponse);
+     println@Console( QueueUtilsResponse)();
      if (QueueUtilsResponse>0){
      poll@QueueUtils("transactionqueque" + status.myID)(QueueUtilsResponse);
      transactionVerification@transactionInternalVerification(QueueUtilsResponse)(transactionVerificationResponse);
@@ -307,7 +309,6 @@ execution {concurrent}
      createSecureToken@SecurityUtils()(token);
      block.transaction[1].vout[0].coinbase="Mining like a dwarf "+token;
      block.transaction[1].vout[0].value=600000000; //in Jollaroshi
-     //TO DO: fix ask peertable
      findPeer@findInternalPeer()(findPeerResponse);
      block.transaction[1].vout[0].pk=findPeerResponse.node[0].publicKey;
      powGeneration@powInternalGeneration(block)(powGenerationResponse);
@@ -409,7 +410,7 @@ main {
     for ( i = 0, i < #global.peertable.node, i++  ){
      if (global.peertable.node[i].location==TxValue.location){
        println@Console( "Destination id found" )();
-       TxValue.publicKey=global.peertable.node[i].publicKey //Error?
+       TxValue.publicKey=global.peertable.node[i].publicKey
      } else{
       if (onetime=false){
         findPeer@findInternalPeer(global.peertable)(findPeerResponse);
@@ -443,17 +444,18 @@ main {
        };
 
       println@Console( "Define transaction output" )();
-      transaction.vout[#transaction.vout].value=TxValue.value|
-      transaction.vout[#transaction.vout].pk=TxValue.publicKey;
-      if (sum>Tx.Value){
+      transaction.vout[0].value=TxValue.value;
+      transaction.vout[0].pk=TxValue.publicKey;
+      if (sum>Tx.Value){ //use txin
         transaction.vout[#transaction.vout].value=TxValue.value-sum|
         transaction.vout[#transaction.vout].pk=global.peertable.node[0].publicKey
       };
 
     //Una volta creata la transazione devo inviarla in broadcast per permettere agli altri nodi di inserirla nei loro blocchi
     println@Console( "Send Transaction to TransactionBroadcast" )();
-    for ( i=1, i<#global.peertable.node, i++ ) {
+    for ( i=#global.peertable.node, i=1, i-- ) {
       OutputBroadcastPort.location=ROOT+i;
+      println@Console( "Sending to "+OutputBroadcastPort.location )();
       TransactionBroadcast@OutputBroadcastPort(transaction)(TransactionBroadcastResponse);
       println@Console( TransactionBroadcastResponse )()
     };
