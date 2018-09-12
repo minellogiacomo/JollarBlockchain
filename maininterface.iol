@@ -1,16 +1,16 @@
 //TO DO: define subtype cardinality
 //TO DO: rename subnodes to match code style
 
+type TxValue: void {
+  .value: long //in Jollaroshi 1Jollar=100,000,000 Jollaroshi
+  .location: string
+}
+
 type TxOut: void {
   .value: long //in Jollaroshi 1Jollar=100,000,000 Jollaroshi
   .pk: string
   .coinbase?:string
   .signature?: string //TO DO: add (this is second half)
-}
-
-type TxValue: void {
-  .value: long //in Jollaroshi 1Jollar=100,000,000 Jollaroshi
-  .location: string
 }
 
 //UXTO (unspent transaction)
@@ -23,7 +23,7 @@ type TxIn: void {
 type transaction: void {
   .txid: string
   .vin?: TxIn
-  .vout: TxOut
+  .vout?: TxOut
 }
 
 type block: void {
@@ -38,7 +38,7 @@ type block: void {
 .hash:string
 .difficulty: long
 .transaction: transaction
-.pow?: long 
+.pow?: long
 }
 
 type blockchain: void {
@@ -52,7 +52,7 @@ type node: void {
 }
 
 type peertable: void {
-  .node[0,*]: node
+  .node[1,*]: node
 }
 
 interface DemoTxInterface {

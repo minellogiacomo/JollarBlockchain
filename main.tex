@@ -17,20 +17,79 @@
 \usetikzlibrary{arrows}
 \usepackage{pgf-umlsd}
 \include{macros}
-\title{Jollar}
-\author{Per un Pugno di Jollar}
+\title{Jollar -- Laboratorio Sistemi Operativi A.A. 2017-2018}
+\author{Per un Pugno di Jollar \\
+\\
+\href{mailto:giacomo.minello@studio.unibo.it}{giacomo.minello@studio.unibo.it}}
 \begin{document}
 \maketitle
+
 \begin{abstract}
-\noindent Test: to do aggiungere abstract.
+\noindent Questo documento ha lo scopo di essere un report dettagliato sulle modalità di esecuzione e le scelte implementative della blockchain Jollar. Verranno indicati i contatti dei membri del gruppo, si procederà quindi ad una breve descrizione delle caratteristiche del progetto. Seguono le istruzioni ed i comandi di esecuzione per una demo che è stata preparata. Infine si discuteranno le strategie implementative con particolare riguardo all'architettura dei servizi.
 \end{abstract}
 \tableofcontents
 \newpage
+\section{Contatti}
+\begin{tcolorbox}[colback=green!20!white,colframe=green!75!black,title=Contatti del gruppo]
+\begin{itemize}
+    \item Minello Giacomo\footnote{Referente del gruppo}, Matr. 0000802402, \\
+    \href{mailto:giacomo.minello@studio.unibo.it}{giacomo.minello@studio.unibo.it} \\
+    \href{mailto:minellogiacomo@gmail.com}{minellogiacomo@gmail.com}
+    \item Aspromonte Marco, Matr. 0000806519 \\
+    \href{marco.aspromonte@studio.unibo.it}{marco.aspromonte@studio.unibo.it}\\
+    \href{marco.aspromonte@gmail.com}{marco.aspromonte@gmail.com}
+    \item Menetto Davide, Matr. 0000768828 \\
+    \href{davide.menetto@studio.unibo.it}{davide.menetto@studio.unibo.it}\\
+    \href{davide.menetto96@gmail.com}{davide.menetto96@gmail.com}
+    \item Morselli Enrico, Matr. 0000806725\\
+    \href{enrico.morselli@studio.unibo.it}{enrico.morselli@studio.unibo.it}
+    \item Memoli Alessandro, Matr. 0000  \\
+\end{itemize}
+\end{tcolorbox}
+\newpage
 \section{Descrizione del progetto}
+Il progetto assegnato prevede la creazione di una blockchain, ovvero il codice dei nodi che partecipano ad una rete P2P per lo scambio e la verifica di transazioni basate sulla cryptocurrency Jollar. 
 \newpage
 \section{Istruzioni per la demo}
+La sequenza di esecuzione è la seguente:
+\begin{enumerate}
+    \item avvio del Nodo 1;\\
+    jolie node1.ol
+    \item avvio del Nodo 2;\\
+    jolie node2.ol
+    \item avvio del Nodo 3;\\
+    jolie node3.ol
+    \item avvio del Nodo 4;\\
+    jolie node4.ol
+    \item avvio del Network Visualizer \\
+    jolie networkVisualizer.ol
+    \item avvio di DemoTX.ol\\
+    jolie demoTX.ol
+\end{enumerate}
 \newpage
 \section{Discussione delle strategie di implementazione}
+In questa sezione sono analizzate la struttura del progetto, le scelte e i vincoli implementativi e la descrizione specifica delle singole feature.
+\subsection{Organizzazione}
+
 \subsection{Struttura del progetto}
-\subsection{Descrizione delle feature}
+\subsubsection{Struttura di un nodo}
+Riguardo alla struttura del codice è bene iniziare analizzando la struttura di un nodo. 
+%
+\lstinputlisting[language=Jolie]{node1.ol}
+%
+Si osserva quindi che, contrariamente a quanto ci si aspetti, un file nodoN.ol contiene una piccola porzione di codice. Per massimizzare la code reusability e per agevolare la mantenibilità del codice abbiamo scelto di identificare un nodo con quattro costanti (di cui solo tre caratteristiche di ogni nodo).
+Queste costanti sono in ordine:
+\begin{itemize}
+    \item ROOT, cosante comune a tutti i nodi, è la radice di una location ed è stata inserita per evitare di avere ogni indirizzo hardcoded nel codice.
+    \item CREATEGENESISBLOCK, è una costande boleana con valore true solo per il primo nodo della rete, il suo scopo si può dedurre dal nome.
+    \item ID, questo valore corrisponde al numero n del nodoN, viene usato per identificare univocamente un nodo.
+    \item LOCATION, indica l'indirizzo dell'inputPort del nodo, è stata inserità solo perché il linguaggio Jolie non permette di dichiarare una location tramite l'operazione sulle stringhe ROOT+ID. 
+\end{itemize}
+Ogni nodo importa il file "main.ol" che contiene il codice comune a tutti i nodi.
+\subsubsection{Struttura di main.ol}
+Il file main.ol di cui riporteremo qui solo alcuni estratti per ragioni di chiarezza e lunghezza si occupa di importare alcune librerie standard del linguaggio Jolie per poter esporre al programma alcuni servizi utili. 
+Per ragioni di compattezza abbiamo scelto di impostare solo due porte per ogni nodo, una di output e una di input. Per fare ciò abbiamo deciso di considerare la location dell'inputPort come univoca per ogni nodo e dichiarare la location dell'output port tramite dynamic binding. ectna di ion{Descrizione delle feature}
+\subsubsection{Struttura del Network Visualizer}
+\subsubsection{Struttura della demo}
+
 \end{document}

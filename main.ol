@@ -182,12 +182,18 @@ execution {concurrent}
      if (#peertable<=1){
        OutputBroadcastPort.location=ROOT+"1";
        PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
-        peertable << PeerDiscoveryResponse
+        //peertable << PeerDiscoveryResponse
+        foreach ( node : PeerDiscoveryResponse ) {
+          peertable.node[#peertable.node]=node
+        }
      }else {
      for ( i=1, i<#peertable.node, i++ ) {
        OutputBroadcastPort.location=ROOT+i;
        PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
-       peertable << PeerDiscoveryResponse
+       //peertable << PeerDiscoveryResponse
+       foreach ( node : PeerDiscoveryResponse ) {
+         peertable.node[#peertable.node]=node
+       }
      }
     };
      findPeerResponse=peertable;
@@ -377,7 +383,10 @@ init {
    creategenesisblock
   } else {
    findPeer@findInternalPeer(global.peertable)(findPeerResponse);
-   global.peertable<<findPeerResponse;
+   foreach ( node : findPeerResponse ) {
+     global.peertable.node[#global.peertable.node]=node
+   };
+   //global.peertable<<findPeerResponse;
    println@Console( "Send blockchain sync request" )();
    for ( i=1, i<#global.peertable.node, i++ ) {
      OutputBroadcastPort.location=ROOT+i;
@@ -414,7 +423,10 @@ main {
      } else{
       if (onetime=false){
         findPeer@findInternalPeer(global.peertable)(findPeerResponse);
-        global.peertable<<findPeerResponse;
+        //global.peertable<<findPeerResponse;
+        foreach ( node : findPeerResponse ) {
+          global.peertable.node[#global.peertable.node]=node
+        };
       onetime=true|
       i=0
       } else {
@@ -453,6 +465,7 @@ main {
 
     //Una volta creata la transazione devo inviarla in broadcast per permettere agli altri nodi di inserirla nei loro blocchi
     println@Console( "Send Transaction to TransactionBroadcast" )();
+    //TO DO: fix, endless loop here
     for ( i=#global.peertable.node, i=1, i-- ) {
       OutputBroadcastPort.location=ROOT+i;
       println@Console( "Sending to "+OutputBroadcastPort.location )();
@@ -475,7 +488,12 @@ main {
  [PeerDiscovery(peertableother)(PeerDiscoveryResponse) {
    println@Console( "Answering PeerDiscovery" )();
    PeerDiscoveryResponse=global.peertable;
-   global.peertable << peertableother;
+   foreach ( node : peertableother ) {
+     global.peertable.node[#global.peertable.node]=node
+   };
+   //global.peertable << peertableother;
+   println@Console( #peertableother )();
+   println@Console( #global.peertable)();
    println@Console( "Answering PeerDiscovery finished" )()
  }]
 
@@ -502,9 +520,8 @@ main {
  [TransactionBroadcast(currentTransaction)(TransactionBroadcastResponse) {
    println@Console( "Answering TransactionBroadcast" )();
    transactionVerification@transactionInternalVerification(currentTransaction)(transactionVerificationResponse);
-   TransactionBroadcastResponse=false;
    if (transactionVerificationResponse){
-   QueueReq.queue_name = "transactionqueque" + global.status.myID |
+   QueueReq.queue_name = "transactionqueque" + global.status.myID ;
    QueueReq.element = currentTransaction;
    push@QueueUtils(QueueReq)(QueueUtilsResponse);
    TransactionBroadcastResponse=QueueUtilsResponse};
