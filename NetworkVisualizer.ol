@@ -17,14 +17,7 @@ outputPort NetworkPort {
 inputPort InPort {
  Location: LOCATION
  Protocol: http
- Interfaces: DemoTxInterface //more to come
-}
-
-constants {
-  ROOT="socket://localhost:900",
-  CREATEGENESISBLOCK = false,
-  ID="0",
-  LOCATION="socket://localhost:9000"
+ Interfaces: DemoTxInterface
 }
 
 execution {concurrent}

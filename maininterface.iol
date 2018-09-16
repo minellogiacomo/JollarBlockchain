@@ -46,13 +46,13 @@ type blockchain: void {
 }
 
 type node: void {
-  .publicKey[1,1]: string
-  .privateKey[0,1]: string
-  .location[1,*]: string
+  .publicKey[0,*]: string
+  .privateKey[0,*]: string
+  .location[0,*]: string
 }
 
 type peertable: void {
-  .node[1,*]: node
+  .node[0,*]: node
 }
 
 interface DemoTxInterface {

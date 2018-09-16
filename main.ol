@@ -37,7 +37,7 @@ execution {concurrent}
   main {
    [transactionVerification(currenttransaction)(transactionVerificationResponse){
    println@Console( "Starting transaction verification" )();
-   if (currenttransaction instanceof transaction){ //TO DO: add more conditions
+   if (currenttransaction instanceof transaction){
        transactionVerificationResponse=true
    };
    println@Console( "Transaction verification finished" )()
@@ -114,7 +114,7 @@ execution {concurrent}
       (block.n >= 0)&&
       transactionVerificationResponse0 &&
       transactionVerificationResponse1 &&
-      powVerificationResponse){ //TO DO: add more conditions
+      powVerificationResponse){
       blockVerificationResponse=true
    };
    println@Console( "Block verification finished" )()
@@ -179,10 +179,11 @@ execution {concurrent}
      tavola << peertable;
      undef(tavola.node[0].privateKey);
      println@Console( "Send Peer Discovery request" )();
-     if (#peertable<=1){
+     if (#peertable.node<=1){
        OutputBroadcastPort.location=ROOT+"1";
        PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
         //peertable << PeerDiscoveryResponse
+        //TO DO: fix
         foreach ( node : PeerDiscoveryResponse ) {
           peertable.node[#peertable.node]=node
         }
@@ -372,7 +373,6 @@ init {
   getCurrentTimeMillis@Time()(getCurrentTimeMillisResponse);
   global.status.startUpTime = getCurrentTimeMillisResponse;
   println@Console( getCurrentTimeMillisResponse)();
-  //TO DO: DSA
   createSecureToken@SecurityUtils()(token);
   global.peertable.node[0].publicKey = token;
   createSecureToken@SecurityUtils()(token);
@@ -438,12 +438,12 @@ main {
      if (DemoTXResponse) {
       println@Console( "Creating transaction id" )();
       createSecureToken@SecurityUtils()(token);
-      transaction.txid=token|
+      transaction.txid=token;
       println@Console( "Search unspent transaction input" )();
       sum=0;
       findLongestChain@findInternalLongestChain(global.blockchain)(findLongestChainResponse);
       longestchain=findLongestChainResponse;
-      //findUnspentTx@findInternalUnspentTx(longestchain)(findUnspentTxResponse);//come faccio a recuperare l'index?
+      //findUnspentTx@findInternalUnspentTx(longestchain)(findUnspentTxResponse);
 
       for( i=0, i=#longestchain.block, i++ ) {
         for( j = #longestchain.block[i].transaction.vout-1, i=0, i-- ) {
@@ -465,8 +465,7 @@ main {
 
     //Una volta creata la transazione devo inviarla in broadcast per permettere agli altri nodi di inserirla nei loro blocchi
     println@Console( "Send Transaction to TransactionBroadcast" )();
-    //TO DO: fix, endless loop here
-    for ( i=#global.peertable.node, i=1, i-- ) {
+    for ( i=1, i<5, i++ ) {
       OutputBroadcastPort.location=ROOT+i;
       println@Console( "Sending to "+OutputBroadcastPort.location )();
       TransactionBroadcast@OutputBroadcastPort(transaction)(TransactionBroadcastResponse);
@@ -488,10 +487,12 @@ main {
  [PeerDiscovery(peertableother)(PeerDiscoveryResponse) {
    println@Console( "Answering PeerDiscovery" )();
    PeerDiscoveryResponse=global.peertable;
-   foreach ( node : peertableother ) {
-     global.peertable.node[#global.peertable.node]=node
-   };
-   //global.peertable << peertableother;
+   println@Console( #peertableother )();
+   println@Console( #global.peertable)();
+   /*for (i=0,i<#peertableother.node,i++) {
+     global.peertable.node[#global.peertable]=peertableother.node[0]
+   };*/
+   global.peertable << peertableother;
    println@Console( #peertableother )();
    println@Console( #global.peertable)();
    println@Console( "Answering PeerDiscovery finished" )()
@@ -529,7 +530,6 @@ main {
  }]
 
  //Se ricevo una richiesta di NetworkVisualizer invio i dati richiesti
- //TO DO: finish data structure
  [NetworkVisualizer()(NetworkVisualizerResponse) {
   println@Console( "Answering NetworkVisualizer" )();
   NetworkVisualizerResponse.ID = global.status.myID;
