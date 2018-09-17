@@ -1,14 +1,11 @@
 image: jolielang/jolie
-
 stages:
   - build
-
 # Stage "build"
 build1:
   stage: build
   script:
     - jolie --check *.ol
-
 build2:
   stage: build
   script:
