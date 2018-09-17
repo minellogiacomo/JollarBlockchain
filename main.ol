@@ -421,10 +421,10 @@ init {
 main {
   [DemoTx(TxValue)(DemoTXResponse) {
     println@Console( "Answering DemoTx" )();
-    DemoTXResponse=true;
+    TXResponse=true;
     onetime=false; // a cosa serve questo parametro? triggerare solo una volta il findpeer!
     println@Console( "Find destination id" )();
-    for ( i = 0, i < #global.peertable.node, i++  ){
+    for ( i = 1, i < #global.peertable.node, i++  ){
      if (global.peertable.node[i].location==TxValue.location){
        println@Console( "Destination id found" )();
        TxValue.publicKey=global.peertable.node[i].publicKey
@@ -439,11 +439,11 @@ main {
       i=0
       } else {
         println@Console( "Can't find destination id" )();
-        DemoTXResponse=false
+        TXResponse=false
       }
      }
    };
-     //if (DemoTXResponse) {
+     //if (TXResponse) {
       println@Console( "Creating transaction id" )();
       createSecureToken@SecurityUtils()(token);
       transaction.txid=token;
@@ -454,7 +454,7 @@ main {
       //findUnspentTx@findInternalUnspentTx(longestchain)(findUnspentTxResponse);
 
       for( i=0, i=#longestchain.block, i++ ) {
-        for( j = #longestchain.block[i].transaction.vout-1, i=0, i-- ) {
+        for( j = #longestchain.block[i].transaction.vout-1, j=0, j-- ) {
         if(TxValue.value-sum>0) {
           sum=sum+longestchain.block[i].transaction.vout[j].value;
           transaction.vin[#transaction.vin].txid=longestchain.block[i].transaction.txid;
