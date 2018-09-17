@@ -133,35 +133,41 @@ execution {concurrent}
      //https://github.com/stubbscroll/CUNNINGHAM provare a vedere anche questo
      seed=2;
      i=0;
-     /*
+
      //Output : 2 5 11 23 47
-     int p1, i = 0, x, flag, k;
-    while (true)
+     flag=true;
+    while (flag)
     {
-        flag = 1;
-        x = (int)(Math.pow(2, i));
+        flag = true;
+        powReq.base=2;
+        powReq.exponent=i;
+        pow@Math(powReq)(response);
+        x = long(response);
         p1 = x * seed + (x - 1);
 
         // check prime or not
-        for (k = 2; k < p1; k++)
+        for (k = 2, k < p1, k++)
         {
             if (p1 % k == 0)
             {
-                flag = 0;
-                break;
+                flag = false
             }
-        }
-        if (flag == 0){break;}
-        pow[#pow]=p1;
+        };
+        if (flag){
+          poww[#poww]=p1
+        };
+
         i++;
-         }
-         }
-     */
+         if(x<99999){flag=true}else{flag=false}
+       };
+     /*
      powGenerationResponse[0]=2;
      powGenerationResponse[1]=5;
      powGenerationResponse[2]=11;
      powGenerationResponse[3]=23;
      powGenerationResponse[4]=47;
+     */
+     powGenerationResponse<<poww;
      println@Console( "PoW generation finished" )()
    }]
   }
@@ -179,7 +185,7 @@ execution {concurrent}
      tavola << peertable;
      undef(tavola.node[0].privateKey);
      println@Console( "Send Peer Discovery request" )();
-     if (#peertable.node<=1){
+     if (#peertable.node==1){
        OutputBroadcastPort.location=ROOT+"1";
        PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
         //peertable << PeerDiscoveryResponse
@@ -255,17 +261,17 @@ execution {concurrent}
   main {
    [getNetworkAverageTime(status.myID)(getNetworkAverageTimeResponse){
    println@Console( "Get Network Average Time" )();
-   OutputBroadcastPort.location="socket://localhost:900"+status.myID;
-   findPeer@findInternalPeer()(findPeerResponse);
-   for ( i=1, i<#findPeerResponse.node, i++ ) {
+   //OutputBroadcastPort.location="socket://localhost:900"+status.myID;
+   peertable.node[0].location="socket://localhost:900"+status.myID;
+   //findPeer@findInternalPeer(peertable)(findPeerResponse);
+   for ( i=1, i<5, i++ ) {
      OutputBroadcastPort.location=ROOT+i;
      TimeBroadcast@OutputBroadcastPort()(TimeBroadcastResponse);
-     if (is_defined(avgtime)) {
-      avgtime = (avgtime + TimeBroadcastResponse) / 2
+     if (is_defined(getNetworkAverageTimeResponse)) {
+      getNetworkAverageTimeResponse = (getNetworkAverageTimeResponse + TimeBroadcastResponse)
      } else {
-      avgtime = TimeBroadcastResponse
-    };
-    undef( avgtime )
+      getNetworkAverageTimeResponse = TimeBroadcastResponse
+    }
    };
    println@Console( "Network Average Time finished" )()
    }]
@@ -285,8 +291,9 @@ execution {concurrent}
      println@Console( QueueUtilsResponse)();
      if (QueueUtilsResponse>0){
      poll@QueueUtils("transactionqueque" + status.myID)(QueueUtilsResponse);
-     transactionVerification@transactionInternalVerification(QueueUtilsResponse)(transactionVerificationResponse);
-     if (transactionVerificationResponse){
+     //transactionVerification@transactionInternalVerification(QueueUtilsResponse)(transactionVerificationResponse);
+     //if (transactionVerificationResponse){
+     if (true){
      transaction=QueueUtilsResponse;
      OutputBroadcastPort.location="socket://localhost:900"+status.myID;
      BlockchainSync@OutputBroadcastPort()(BlockchainSyncResponse);
@@ -358,6 +365,7 @@ define creategenesisblock {
   createSecureToken@SecurityUtils()(token);
   global.blockchain.block[0].transaction.vout.coinbase = token;
   powGeneration@powInternalGeneration(global.blockchain.block[0])(powGenerationResponse);
+  println@Console( powGenerationResponse)();
   global.blockchain.block[0].pow=powGenerationResponse
   }
 
@@ -435,7 +443,7 @@ main {
       }
      }
    };
-     if (DemoTXResponse) {
+     //if (DemoTXResponse) {
       println@Console( "Creating transaction id" )();
       createSecureToken@SecurityUtils()(token);
       transaction.txid=token;
@@ -471,8 +479,8 @@ main {
       TransactionBroadcast@OutputBroadcastPort(transaction)(TransactionBroadcastResponse);
       println@Console( TransactionBroadcastResponse )()
     };
-    DemoTXResponse=TransactionBroadcastResponse
-    };
+    DemoTXResponse=TransactionBroadcastResponse;
+    //};
      /*
      println@Console( "Send BlockchainSync request to broadcast" )();
      for ( i=1, i<#global.peertable.node, i++ ) {

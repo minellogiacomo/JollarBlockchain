@@ -1,4 +1,3 @@
-//TO DO: define subtype cardinality
 //TO DO: rename subnodes to match code style
 
 type TxValue: void {
@@ -7,23 +6,23 @@ type TxValue: void {
 }
 
 type TxOut: void {
-  .value: long //in Jollaroshi 1Jollar=100,000,000 Jollaroshi
-  .pk: string
-  .coinbase?:string
-  .signature?: string //TO DO: add (this is second half)
+  .value[0,*]: long //in Jollaroshi 1Jollar=100,000,000 Jollaroshi
+  .pk[0,*]: string
+  .coinbase[0,*]:string
+  .signature[0,*]: string //TO DO: add (this is second half)
 }
 
 //UXTO (unspent transaction)
 type TxIn: void {
-  .txid?: string
-  .index?: int
-  .signature?:string //first half of signature
+  .txid[0,*]: string
+  .index[0,*]: int
+  .signature[0,*]:string //first half of signature
 }
 
 type transaction: void {
   .txid: string
-  .vin?: TxIn
-  .vout?: TxOut
+  .vin[0,*]: TxIn
+  .vout[0,*] :TxOut
 }
 
 type block: void {
