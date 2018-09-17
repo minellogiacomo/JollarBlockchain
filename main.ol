@@ -123,7 +123,7 @@ execution {concurrent}
   }
 
   interface powGenerationInterface {
-   RequestResponse: powGeneration(block)(long)
+   RequestResponse: powGeneration(undefined)(undefined)
   }
   service powInternalGeneration {
   Interfaces: powGenerationInterface
