@@ -67,7 +67,7 @@ interface BlockBroadcastInterface {
 }
 
 interface TransactionBroadcastInterface {
-  RequestResponse: TransactionBroadcast(transaction)(bool)
+  RequestResponse: TransactionBroadcast(undefined)(bool)
 }
 
 interface TimeBroadcastInterface {

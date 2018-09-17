@@ -30,16 +30,16 @@ inputPort InPort {
 execution {concurrent}
 
   interface transactionVerificationInterface {
-   RequestResponse: transactionVerification(transaction)(bool)
+   RequestResponse: transactionVerification(undefined)(undefined)
   }
   service transactionInternalVerification {
   Interfaces: transactionVerificationInterface
   main {
    [transactionVerification(currenttransaction)(transactionVerificationResponse){
    println@Console( "Starting transaction verification" )();
-   if (currenttransaction instanceof transaction){
-       transactionVerificationResponse=true
-   };
+  // if (currenttransaction instanceof transaction){
+       transactionVerificationResponse=true;
+  // };
    println@Console( "Transaction verification finished" )()
    }]
   }
@@ -189,7 +189,6 @@ execution {concurrent}
        OutputBroadcastPort.location=ROOT+"1";
        PeerDiscovery@OutputBroadcastPort(tavola)(PeerDiscoveryResponse);
         //peertable << PeerDiscoveryResponse
-        //TO DO: fix
         foreach ( node : PeerDiscoveryResponse ) {
           peertable.node[#peertable.node]=node
         }
